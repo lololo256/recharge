@@ -1,184 +1,89 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>✨ น้องบอร์ด Setup ✨</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #fff5f8 0%, #e0f7fa 100%);
-            color: #5d4037;
-            font-family: 'Mali', cursive;
-            padding: 20px;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 400px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 25px;
-            box-shadow: 0 10px 20px rgba(255, 182, 193, 0.4);
-            border: 2px solid #ffb3c6;
-        }
-        h1 {
-            text-align: center;
-            font-size: 26px;
-            color: #ff6b9d;
-            text-shadow: 1px 1px 0 #fff, 2px 2px 0 #ffb3c6;
-            margin-bottom: 25px;
-        }
-        .card {
-            background: #fff;
-            padding: 18px;
-            border-radius: 18px;
-            margin-bottom: 20px;
-            border: 1px solid #ffe0e9;
-        }
-        h3 {
-            margin-top: 0;
-            color: #ff8ab2;
-            font-size: 18px;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 12px;
-            background: #fef0f4;
-            border: 2px solid #ffb3c6;
-            color: #7a4b5c;
-            border-radius: 50px;
-            box-sizing: border-box;
-            font-family: 'Mali', cursive;
-            font-size: 15px;
-        }
-        input:focus {
-            outline: none;
-            border-color: #ff6b9d;
-            background: #fff;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            font-family: 'Mali', cursive;
-            transition: transform 0.1s;
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-        .btn-primary {
-            background: linear-gradient(45deg, #6bc4ff, #8ae7ff);
-            color: white;
-            box-shadow: 0 4px 10px rgba(107, 196, 255, 0.3);
-        }
-        .btn-success {
-            background: linear-gradient(45deg, #ff6b9d, #ff9eb5);
-            color: white;
-            box-shadow: 0 4px 10px rgba(255, 107, 157, 0.3);
-        }
-        button:disabled {
-            background: #e0e0e0;
-            color: #888;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        #btStatus {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #ffaa00;
-            text-align: center;
-            font-weight: bold;
-        }
-        .note {
-            text-align: center;
-            font-size: 12px;
-            color: #a0a0a0;
-            margin-top: 15px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>✨ น้องบอร์ด Setup ✨</h1>
+<script>
+    const serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+    const characteristicUuidRx = "beb5483e-36e1-4688-b7f5-ea07361b26a8"; // ช่องรับ
+    const characteristicUuidTx = "beb5483e-36e1-4688-b7f5-ea07361b26a9"; // ช่องส่งกลับ
+    
+    let myCharacteristicRx;
+    let myCharacteristicTx;
+
+    // ฟังก์ชันดักรอรับข้อความจากบอร์ด
+    function handleNotifications(event) {
+        let value = new TextDecoder().decode(event.target.value);
+        const statusText = document.getElementById('btStatus');
+        const btnSend = document.getElementById('btnSend');
         
-        <div class="card">
-            <h3>☁️ 1. เชื่อมต่อน้องบอร์ดน้า</h3>
-            <button id="btnConnect" class="btn-primary">🍭 ค้นหาบอร์ด Bluetooth</button>
-            <div id="btStatus">สถานะ: รอคนมาเชื่อมต่อ... 👉👈</div>
-        </div>
+        btnSend.disabled = false;
+        btnSend.innerHTML = "🚀 อัปเดตรหัสลงบอร์ด";
 
-        <div class="card">
-            <h3>💌 2. เปลี่ยน/ตั้งค่า WiFi ใหม่</h3>
-            <input type="text" id="txtSSID" placeholder="ชื่อ WiFi (SSID)">
-            <input type="password" id="txtPass" placeholder="รหัสผ่าน WiFi">
-            <button id="btnSend" class="btn-success" disabled>🚀 อัปเดตรหัสลงบอร์ด</button>
-        </div>
+        if (value === "OK") {
+            alert("✅ เย้! น้องบอร์ดเชื่อมต่อ WiFi บ้านสำเร็จแล้วจ้า!");
+            statusText.innerHTML = "✅ เน็ตต่อติดแล้ว! สุดยอดเลย";
+            statusText.style.color = "#00cc66";
+        } else if (value === "FAIL") {
+            alert("❌ ว้า... เชื่อมต่อไม่สำเร็จจ้า (รหัสอาจจะผิดน้า ลองเช็คแล้วพิมพ์ส่งใหม่ดูจ้า)");
+            statusText.innerHTML = "❌ ต่อเน็ตไม่สำเร็จ ลองใหม่น้า";
+            statusText.style.color = "red";
+        }
+    }
 
-        <div class="note">
-            💡 พิมพ์ผิด หรืออยากเปลี่ยน WiFi ใหม่ <br> ก็พิมพ์แก้แล้วกดปุ่มส่งซ้ำได้เลยจ้า!
-        </div>
-    </div>
+    document.getElementById('btnConnect').addEventListener('click', async () => {
+        const statusText = document.getElementById('btStatus');
+        try {
+            statusText.innerHTML = "👀 กำลังหากันจนเจอ...";
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ name: 'CYBER_BOARD_BLE' }],
+                optionalServices: [serviceUuid]
+            });
 
-    <script>
-        const serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-        const characteristicUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-        let myCharacteristic;
+            statusText.innerHTML = "🤝 กำลังจับมือกัน...";
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService(serviceUuid);
+            
+            // เชื่อมต่อทั้งช่องรับและช่องส่ง
+            myCharacteristicRx = await service.getCharacteristic(characteristicUuidRx);
+            myCharacteristicTx = await service.getCharacteristic(characteristicUuidTx);
 
-        document.getElementById('btnConnect').addEventListener('click', async () => {
-            const statusText = document.getElementById('btStatus');
-            try {
-                statusText.innerHTML = "👀 กำลังหากันจนเจอ...";
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: 'CYBER_BOARD_BLE' }],
-                    optionalServices: [serviceUuid]
-                });
+            // เปิดการรับแจ้งเตือนจากบอร์ด
+            await myCharacteristicTx.startNotifications();
+            myCharacteristicTx.addEventListener('characteristicvaluechanged', handleNotifications);
 
-                statusText.innerHTML = "🤝 กำลังจับมือกัน...";
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService(serviceUuid);
-                myCharacteristic = await service.getCharacteristic(characteristicUuid);
+            statusText.innerHTML = "✅ เชื่อมต่อแล้วจ้า! (" + device.name + ")";
+            statusText.style.color = "#ff6b9d"; 
+            document.getElementById('btnSend').disabled = false; 
 
-                statusText.innerHTML = "✅ เชื่อมต่อแล้วจ้า! (" + device.name + ")";
-                statusText.style.color = "#ff6b9d"; 
-                document.getElementById('btnSend').disabled = false; 
+        } catch (error) {
+            statusText.innerHTML = "❌ หายไปไหนแล้ว... (เชื่อมต่อไม่สำเร็จ)";
+            statusText.style.color = "#ff6b9d";
+            console.error(error);
+        }
+    });
 
-            } catch (error) {
-                statusText.innerHTML = "❌ หายไปไหนแล้ว... (เชื่อมต่อไม่สำเร็จ)";
-                statusText.style.color = "#ff6b9d";
-                console.error(error);
-            }
-        });
+    document.getElementById('btnSend').addEventListener('click', async () => {
+        let ssid = document.getElementById('txtSSID').value;
+        let pass = document.getElementById('txtPass').value;
+        const btnSend = document.getElementById('btnSend');
 
-        document.getElementById('btnSend').addEventListener('click', async () => {
-            let ssid = document.getElementById('txtSSID').value;
-            let pass = document.getElementById('txtPass').value;
+        if (!ssid || !pass) { 
+            alert("❌ อย่าลืมกรอกชื่อ WiFi กับรหัสผ่านน้า"); 
+            return; 
+        }
 
-            if (!ssid || !pass) { 
-                alert("❌ อย่าลืมกรอกชื่อ WiFi กับรหัสผ่านน้า"); 
-                return; 
-            }
+        let dataToSend = ssid + "," + pass + "\n";
+        let encoder = new TextEncoder();
+        let dataArray = encoder.encode(dataToSend);
 
-            let dataToSend = ssid + "," + pass + "\n";
-            let encoder = new TextEncoder();
-            let dataArray = encoder.encode(dataToSend);
-
-            try {
-                await myCharacteristic.writeValue(dataArray);
-                alert("🚀 อัปเดต WiFi ใหม่ให้น้องบอร์ดแล้วจ้า! ลองดูที่หน้าจอบอร์ดน้า");
-            } catch (error) {
-                alert("❌ ส่งข้อมูลพลาดจ้า: " + error);
-            }
-        });
-    </script>
-</body>
-</html>
+        try {
+            btnSend.disabled = true;
+            btnSend.innerHTML = "⏳ น้องกำลังหมุนติ้วๆ ลองต่อเน็ต...";
+            
+            // ส่งรหัสไป
+            await myCharacteristicRx.writeValue(dataArray);
+            
+            // ไม่ต้องแจ้งเตือนตรงนี้แล้ว ให้ไปรอรับจากฟังก์ชัน handleNotifications แทน
+        } catch (error) {
+            alert("❌ ส่งข้อมูลพลาดจ้า: " + error);
+            btnSend.disabled = false;
+            btnSend.innerHTML = "🚀 อัปเดตรหัสลงบอร์ด";
+        }
+    });
+</script>
