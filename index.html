@@ -2,14 +2,14 @@
 <html lang="th">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, width=device-width, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>✨ น้องบอร์ด Setup ✨</title>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #fff5f8 0%, #e0f7fa 100%); /* พื้นหลังไล่ระดับสีพาสเทลสดใส */
-            color: #5d4037; /* สีตัวอักษรน้ำตาลเข้มดูอบอุ่น */
-            font-family: 'Mali', cursive; /* ฟอนต์สไตล์ลายมือน่ารัก */
+            background: linear-gradient(135deg, #fff5f8 0%, #e0f7fa 100%);
+            color: #5d4037;
+            font-family: 'Mali', cursive;
             padding: 20px;
             margin: 0;
             display: flex;
@@ -20,16 +20,16 @@
         .container {
             max-width: 400px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.9); /* พื้นหลังขาวโปร่งแสง */
+            background: rgba(255, 255, 255, 0.95);
             padding: 25px;
-            border-radius: 25px; /* มุมโค้งมนน่ารัก */
-            box-shadow: 0 10px 20px rgba(255, 182, 193, 0.3); /* เงาสีชมพูอ่อนๆ */
-            border: 2px solid #ffb3c6; /* เส้นขอบสีชมพู */
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(255, 182, 193, 0.4);
+            border: 2px solid #ffb3c6;
         }
         h1 {
             text-align: center;
             font-size: 26px;
-            color: #ff6b9d; /* สีชมพูสดใส */
+            color: #ff6b9d;
             text-shadow: 1px 1px 0 #fff, 2px 2px 0 #ffb3c6;
             margin-bottom: 25px;
         }
@@ -52,9 +52,10 @@
             background: #fef0f4;
             border: 2px solid #ffb3c6;
             color: #7a4b5c;
-            border-radius: 50px; /* input แบบกลมๆ */
+            border-radius: 50px;
             box-sizing: border-box;
             font-family: 'Mali', cursive;
+            font-size: 15px;
         }
         input:focus {
             outline: none;
@@ -73,15 +74,15 @@
             transition: transform 0.1s;
         }
         button:active {
-            transform: scale(0.98); /* เอฟเฟกต์ตอนกด */
+            transform: scale(0.98);
         }
         .btn-primary {
-            background: linear-gradient(45deg, #6bc4ff, #8ae7ff); /* สีฟ้าสดใส */
+            background: linear-gradient(45deg, #6bc4ff, #8ae7ff);
             color: white;
             box-shadow: 0 4px 10px rgba(107, 196, 255, 0.3);
         }
         .btn-success {
-            background: linear-gradient(45deg, #ff6b9d, #ff9eb5); /* สีชมพูพาสเทล */
+            background: linear-gradient(45deg, #ff6b9d, #ff9eb5);
             color: white;
             box-shadow: 0 4px 10px rgba(255, 107, 157, 0.3);
         }
@@ -98,24 +99,11 @@
             text-align: center;
             font-weight: bold;
         }
-        /* โซนเปลี่ยนรหัสผ่านเว็บ */
-        .secure-zone {
+        .note {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 2px dashed #ffe0e9;
-        }
-        .btn-secure {
-            background: none;
-            border: 1px solid #ffb3c6;
-            color: #ff8ab2;
-            width: auto;
             font-size: 12px;
-            padding: 8px 15px;
-            border-radius: 50px;
-        }
-        .btn-secure:hover {
-            background: #fff0f5;
+            color: #a0a0a0;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -130,66 +118,26 @@
         </div>
 
         <div class="card">
-            <h3>💌 2. ตั้งค่าเน็ตบ้านให้หน่อย</h3>
+            <h3>💌 2. เปลี่ยน/ตั้งค่า WiFi ใหม่</h3>
             <input type="text" id="txtSSID" placeholder="ชื่อ WiFi (SSID)">
             <input type="password" id="txtPass" placeholder="รหัสผ่าน WiFi">
-            <button id="btnSend" class="btn-success" disabled>🚀 ส่งรหัสเลยจ้า</button>
+            <button id="btnSend" class="btn-success" disabled>🚀 อัปเดตรหัสลงบอร์ด</button>
         </div>
 
-        <div class="secure-zone">
-            <p style="font-size: 11px; color: #ff8ab2; margin-bottom: 8px;">ปลอดภัยไว้ก่อนน้า 🔒</p>
-            <button id="btnChangePass" class="btn-secure" onclick="changeAppPassword()">🔑 เปลี่ยนรหัสเข้าหน้าเว็บ</button>
+        <div class="note">
+            💡 พิมพ์ผิด หรืออยากเปลี่ยน WiFi ใหม่ <br> ก็พิมพ์แก้แล้วกดปุ่มส่งซ้ำได้เลยจ้า!
         </div>
     </div>
 
     <script>
-        // รหัส UUID ต้องตรงกับในโค้ด Arduino ของคุณบอลน้า
         const serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const characteristicUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
         let myCharacteristic;
 
-        // --- 🔐 ระบบรหัสผ่านสำหรับเข้าหน้าเว็บ (LocalStorage) 🔐 ---
-        // ดึงรหัสที่บันทึกไว้ ถาไม่มีให้ใช้รหัสเริ่มต้นคือ '1234'
-        let appPassword = localStorage.getItem('appPassword') || '1234';
-
-        // ฟังก์ชันตรวจสอบรหัสผ่านเมื่อเปิดหน้าเว็บ
-        function checkPasswordOnLoad() {
-            let login = prompt("ขอรหัสผ่านน่ารักๆ เพื่อเข้าใช้งานหน่อยจ้า (เริ่มต้นคือ 1234):");
-            if (login === null || login !== appPassword) {
-                alert("❌ รหัสผ่านไม่ถูกต้อง หรือยกเลิกการเข้าระบบ");
-                // ถ้าผิด ให้ลบหน้าจอออกเพื่อให้เข้าใช้งานไม่ได้
-                document.body.innerHTML = "<div style='text-align:center; padding-top:50px; color:#ff6b9d; font-family:\"Mali\", cursive;'><h1>🔒 เข้าไม่ได้จ้า</h1><p>รหัสผ่านไม่ถูกต้องน้า ลองเข้าใหม่ดูจ้า</p></div>";
-            }
-        }
-
-        // ฟังก์ชันสำหรับเปลี่ยนรหัสผ่านใหม่
-        function changeAppPassword() {
-            let oldPass = prompt("กรอกรหัสผ่านปัจจุบันก่อนน้า:");
-            if (oldPass === appPassword) {
-                let newPass = prompt("ตั้งรหัสผ่านใหม่ที่ตัวเองชอบเลย (ขออย่างน้อย 4 ตัวน้า):");
-                if (newPass && newPass.length >= 4) {
-                    // บันทึกรหัสใหม่ลง LocalStorage ของเครื่องนี้
-                    localStorage.setItem('appPassword', newPass);
-                    appPassword = newPass; // อัปเดตตัวแปรในโปรแกรม
-                    alert("✅ เย้! เปลี่ยนรหัสผ่านสำเร็จแล้วจ้า อย่าลืมรหัสใหม่น้า");
-                } else if (newPass) {
-                    alert("❌ รหัสผ่านสั้นเกินไปจ้า ขอ 4 ตัวขึ้นไปน้า");
-                }
-            } else if (oldPass !== null) {
-                alert("❌ รหัสผ่านเดิมไม่ถูกต้องจ้า");
-            }
-        }
-
-        // เรียกตรวจสอบรหัสผ่านทันทีที่เปิดเว็บ
-        checkPasswordOnLoad();
-
-        // --- 🍭 ระบบสั่งงาน Bluetooth (เหมือนเดิม) ---
-        // ฟังก์ชันค้นหาและเชื่อมต่อ
         document.getElementById('btnConnect').addEventListener('click', async () => {
             const statusText = document.getElementById('btStatus');
             try {
                 statusText.innerHTML = "👀 กำลังหากันจนเจอ...";
-                // เรียกหน้าต่างขอสแกน Bluetooth ของ Chrome
                 const device = await navigator.bluetooth.requestDevice({
                     filters: [{ name: 'CYBER_BOARD_BLE' }],
                     optionalServices: [serviceUuid]
@@ -201,17 +149,16 @@
                 myCharacteristic = await service.getCharacteristic(characteristicUuid);
 
                 statusText.innerHTML = "✅ เชื่อมต่อแล้วจ้า! (" + device.name + ")";
-                statusText.style.color = "#ff6b9d"; // เปลี่ยนสีเมื่อสำเร็จ
-                document.getElementById('btnSend').disabled = false; // ปลดล็อคปุ่มส่ง
+                statusText.style.color = "#ff6b9d"; 
+                document.getElementById('btnSend').disabled = false; 
 
             } catch (error) {
-                statusText.innerHTML = "❌ หายไปไหนแล้ว... (ยกเลิก หรือ ล้มเหลว)";
+                statusText.innerHTML = "❌ หายไปไหนแล้ว... (เชื่อมต่อไม่สำเร็จ)";
                 statusText.style.color = "#ff6b9d";
                 console.error(error);
             }
         });
 
-        // ฟังก์ชันส่งรหัส
         document.getElementById('btnSend').addEventListener('click', async () => {
             let ssid = document.getElementById('txtSSID').value;
             let pass = document.getElementById('txtPass').value;
@@ -221,15 +168,13 @@
                 return; 
             }
 
-            // แปลงข้อความ "ชื่อ,รหัส\n" ให้เป็นข้อมูลไบต์ เพื่อส่งผ่าน BLE
             let dataToSend = ssid + "," + pass + "\n";
             let encoder = new TextEncoder();
             let dataArray = encoder.encode(dataToSend);
 
             try {
-                // ส่งข้อมูล
                 await myCharacteristic.writeValue(dataArray);
-                alert("🚀 ส่งรหัสให้น้องบอร์ดแล้วจ้า! รอแป๊บน้า น้องกำลังพยายามต่อเน็ต...");
+                alert("🚀 อัปเดต WiFi ใหม่ให้น้องบอร์ดแล้วจ้า! ลองดูที่หน้าจอบอร์ดน้า");
             } catch (error) {
                 alert("❌ ส่งข้อมูลพลาดจ้า: " + error);
             }
