@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Web BLE Setup</title>
+    <style>
+        body { background-color: #1a1a1a; color: #00ffcc; font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+        .card { background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; background: #333; border: 1px solid #00ffcc; color: white; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #00ffcc; color: black; }
+        button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
+        #btStatus { margin-top: 10px; font-size: 14px; color: #ffaa00; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">⚙️ Web BLE Setup</h1>
+    
+    <div class="card">
+        <h3>1. ค้นหาและเชื่อมต่อบอร์ด</h3>
+        <button id="btnConnect" class="btn-primary">🔍 ค้นหาบอร์ด Bluetooth</button>
+        <div id="btStatus">สถานะ: รอการเชื่อมต่อ...</div>
+    </div>
+
+    <div class="card">
+        <h3>2. ตั้งค่าเน็ตบ้าน</h3>
+        <input type="text" id="txtSSID" placeholder="ชื่อ WiFi (SSID)">
+        <input type="password" id="txtPass" placeholder="รหัสผ่าน WiFi">
+        <button id="btnSend" class="btn-success" disabled>🚀 อัปโหลดเข้าบอร์ด</button>
+    </div>
+
+    <script>
+        // รหัส UUID ต้องตรงกับในโค้ด Arduino
+        const serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        const characteristicUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+        let myCharacteristic;
+
+        // ฟังก์ชันค้นหาและเชื่อมต่อ
+        document.getElementById('btnConnect').addEventListener('click', async () => {
+            const statusText = document.getElementById('btStatus');
+            try {
+                statusText.innerHTML = "กำลังค้นหา...";
+                // เรียกหน้าต่างขอสแกน Bluetooth ของ Chrome
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'CYBER_BOARD_BLE' }],
+                    optionalServices: [serviceUuid]
+                });
+
+                statusText.innerHTML = "กำลังเชื่อมต่อระบบ...";
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(serviceUuid);
+                myCharacteristic = await service.getCharacteristic(characteristicUuid);
+
+                statusText.innerHTML = "✅ เชื่อมต่อสำเร็จ! (" + device.name + ")";
+                statusText.style.color = "#00ffcc";
+                document.getElementById('btnSend').disabled = false;
+
+            } catch (error) {
+                statusText.innerHTML = "❌ ยกเลิก หรือ ล้มเหลว";
+                statusText.style.color = "red";
+                console.error(error);
+            }
+        });
+
+        // ฟังก์ชันส่งรหัส
+        document.getElementById('btnSend').addEventListener('click', async () => {
+            let ssid = document.getElementById('txtSSID').value;
+            let pass = document.getElementById('txtPass').value;
+
+            if (!ssid || !pass) { alert("กรุณากรอกข้อมูลให้ครบ"); return; }
+
+            // แปลงข้อความ "ชื่อ,รหัส\n" ให้เป็นข้อมูลไบต์ (Uint8Array) เพื่อยิงผ่าน BLE
+            let dataToSend = ssid + "," + pass + "\n";
+            let encoder = new TextEncoder();
+            let dataArray = encoder.encode(dataToSend);
+
+            try {
+                await myCharacteristic.writeValue(dataArray);
+                alert("🚀 ส่งข้อมูลสำเร็จ! ลองดูผลลัพธ์ใน Serial Monitor ของ Arduino ครับ");
+            } catch (error) {
+                alert("ส่งข้อมูลพลาด: " + error);
+            }
+        });
+    </script>
+</body>
+</html>
