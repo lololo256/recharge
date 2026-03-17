@@ -14,7 +14,7 @@
         .login-box { text-align: center; padding: 50px; background: var(--card); border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; display: none; }
-        .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); text-align: center; position: relative; overflow: hidden; }
+        .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); text-align: center; position: relative; overflow: hidden; transition: 0.3s; }
         
         /* 🌟 สีสันให้ Hardware เด่นๆ */
         .card-cpu { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: white; }
@@ -28,8 +28,20 @@
         .unit { font-size: 16px; color: #9b8ea0; }
         .card-cpu .unit, .card-gpu .unit, .card-ram .unit { color: rgba(255,255,255,0.8); }
         
-        /* สไตล์ความร้อน */
-        .temp-badge { display: inline-block; margin-top: 5px; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        /* 🌟 สไตล์ความร้อน & การแจ้งเตือน Overheat */
+        .temp-badge { display: inline-block; margin-top: 5px; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; transition: 0.3s; }
+        @keyframes alert-blink {
+            0% { background: rgba(255, 50, 50, 0.9); box-shadow: 0 0 15px rgba(255, 50, 50, 0.6); }
+            50% { background: rgba(255, 50, 50, 0.3); box-shadow: none; }
+            100% { background: rgba(255, 50, 50, 0.9); box-shadow: 0 0 15px rgba(255, 50, 50, 0.6); }
+        }
+        .temp-overheat { animation: alert-blink 1s infinite !important; color: white !important; }
+
+        /* 🌟 ป้ายสถานะ Online/Offline/Idle */
+        .status-badge { font-weight: bold; padding: 4px 12px; border-radius: 12px; font-size: 14px; margin-left: 8px; display: inline-block; }
+        .status-online { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .status-offline { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .status-idle { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
 
         button { padding: 12px 24px; font-family: 'Prompt'; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; transition: transform 0.2s; }
         button:hover { transform: scale(1.05); }
@@ -41,7 +53,7 @@
         .copy-btn { padding: 8px 15px; font-size: 13px; border-radius: 8px; }
         .chart-container { position: relative; height: 300px; width: 100%; margin-top: 15px; }
         
-        /* 🌟 ช่องตั้งค่าเรทค่าไฟแบบมินิมอล */
+        /* ช่องตั้งค่าเรทค่าไฟแบบมินิมอล */
         .rate-setting { display: flex; align-items: center; justify-content: center; gap: 10px; background: #f8f9fa; padding: 10px 20px; border-radius: 12px; display: inline-flex; }
         .input-mini { width: 60px; text-align: center; border: 1px solid #ccc; border-radius: 6px; padding: 4px; font-family: 'Prompt'; font-size: 16px; font-weight: bold; color: #5b4fcf; outline: none; }
         .input-mini:focus { border-color: #5b4fcf; }
@@ -76,12 +88,12 @@
         <div class="card card-cpu">
             <h3>CPU Usage</h3>
             <div class="value"><span id="cpuVal">0</span><span class="unit">%</span></div>
-            <div class="temp-badge">🌡️ <span id="cpuTempVal">0</span> °C</div>
+            <div class="temp-badge" id="cpuBadge">🌡️ <span id="cpuTempVal">0</span> °C</div>
         </div>
         <div class="card card-gpu">
             <h3>GPU Usage</h3>
             <div class="value"><span id="gpuVal">0</span><span class="unit">%</span></div>
-            <div class="temp-badge">🌡️ <span id="gpuTempVal">0</span> °C</div>
+            <div class="temp-badge" id="gpuBadge">🌡️ <span id="gpuTempVal">0</span> °C</div>
         </div>
         <div class="card card-ram">
             <h3>RAM Usage</h3>
@@ -147,10 +159,17 @@
     const loginSection = document.getElementById('loginSection');
     const dashSection = document.getElementById('dashSection');
     let myChart = null; 
-    
     let totalWattEstimate = 0;
-    let unitPrice = 4.5; 
     let globalSessions = null; 
+    let offlineTimer = null; // 🌟 ตัวจับเวลา Offline
+
+    // 🌟 ระบบจำค่าไฟด้วย localStorage
+    let unitPrice = 4.5; 
+    const savedPrice = localStorage.getItem('recharge_unit_price');
+    if (savedPrice) {
+        unitPrice = parseFloat(savedPrice);
+        document.getElementById('unitPriceInput').value = unitPrice;
+    }
 
     document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
 
@@ -158,6 +177,7 @@
         let val = parseFloat(e.target.value);
         if (!isNaN(val) && val > 0) {
             unitPrice = val;
+            localStorage.setItem('recharge_unit_price', unitPrice); // 🌟 เซฟลงเครื่อง
             updateCostUI(); 
         }
     });
@@ -166,7 +186,10 @@
         if (user) {
             loginSection.style.display = 'none';
             dashSection.style.display = 'grid';
-            document.getElementById('statusTxt').innerHTML = `ผู้ใช้งาน: <b>${user.displayName}</b> | เครื่องกำลังทำงาน 🟢`;
+            
+            // 🌟 เตรียมป้ายสถานะตอนล็อกอินเสร็จ
+            document.getElementById('statusTxt').innerHTML = `ผู้ใช้งาน: <b>${user.displayName}</b> <span id="userStatusBadge" class="status-badge status-offline">🔴 รอข้อมูล...</span>`;
+            
             document.getElementById('uidContainer').style.display = 'block';
             document.getElementById('uidDisplay').innerText = user.uid;
 
@@ -179,6 +202,28 @@
             startListening(user.uid);
         }
     });
+
+    // 🌟 ฟังก์ชันจัดการป้ายสถานะ
+    function updateUserStatus(state) {
+        const badge = document.getElementById('userStatusBadge');
+        if(!badge) return;
+        badge.className = 'status-badge'; // เคลียร์คลาสเก่า
+        
+        if (state === 'online') {
+            badge.innerText = "🟢 กำลังทำงาน";
+            badge.classList.add('status-online');
+        } else if (state === 'idle') {
+            badge.innerText = "💤 พักหน้าจอ";
+            badge.classList.add('status-idle');
+        } else if (state === 'offline') {
+            badge.innerText = "🔴 ออฟไลน์ (ปิดคอม)";
+            badge.classList.add('status-offline');
+            // รีเซ็ตตัวเลขหน้าจอเป็น 0 เพื่อความสมจริงตอนคอมปิด
+            document.getElementById('cpuVal').innerText = "0";
+            document.getElementById('gpuVal').innerText = "0";
+            document.getElementById('ramVal').innerText = "0";
+        }
+    }
 
     function startListening(uid) {
         const hwRef = ref(db, `users/${uid}/hardware_info`);
@@ -204,14 +249,30 @@
         onValue(dataRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // 🌟 อัปเดต % การใช้งาน และเพิ่มอุณหภูมิ (Temp)
+                // อัปเดต CPU & ความร้อน
                 document.getElementById('cpuVal').innerText = data.CPU || 0;
                 document.getElementById('cpuTempVal').innerText = data.CPU_Temp || 0;
+                const cpuBadge = document.getElementById('cpuBadge');
+                if(data.CPU_Temp > 80) cpuBadge.classList.add('temp-overheat');
+                else cpuBadge.classList.remove('temp-overheat');
                 
+                // อัปเดต GPU & ความร้อน
                 document.getElementById('gpuVal').innerText = data.GPU || 0;
                 document.getElementById('gpuTempVal').innerText = data.GPU_Temp || 0;
+                const gpuBadge = document.getElementById('gpuBadge');
+                if(data.GPU_Temp > 80) gpuBadge.classList.add('temp-overheat');
+                else gpuBadge.classList.remove('temp-overheat');
                 
                 document.getElementById('ramVal').innerText = data.RAM || 0;
+
+                // 🌟 อัปเดตสถานะการใช้งานเมาส์
+                updateUserStatus(data.mouse_idle ? 'idle' : 'online');
+
+                // 🌟 รีเซ็ตตัวจับเวลาออฟไลน์ (ถ้านิ่งไป 15 วิ จะขึ้นว่าปิดคอม)
+                clearTimeout(offlineTimer);
+                offlineTimer = setTimeout(() => {
+                    updateUserStatus('offline');
+                }, 15000);
             }
         });
 
