@@ -1,10 +1,23 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ReCharge Companion</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#20c997">
+    <meta name="description" content="Monitor and control your PC remotely - CPU, GPU, RAM, Temperature and Power usage">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ReCharge">
+    
+    <!-- App Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -76,9 +89,76 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #a4b0be; cursor: pointer; font-size: 11px; font-weight: 600; text-decoration: none; }
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
+
+        /* ================= Neon Green Theme for Temperature Chart ================= */
+        .neon-card {
+            background: linear-gradient(145deg, #1a1d24, #22262f);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1), inset 0 0 30px rgba(0, 255, 136, 0.02);
+        }
+        .neon-title {
+            color: #00ff88 !important;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        .neon-text {
+            color: #00ff88;
+        }
+        .neon-glow {
+            text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88;
+            font-size: 28px !important;
+        }
+        .temp-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        .temp-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .temp-label {
+            font-size: 11px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .temp-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* ================= Notification Banner ================= */
+        .notification-banner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: 600;
+            z-index: 1001;
+            animation: pulse-red 1s infinite;
+        }
+        .notification-banner.show {
+            display: block;
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 10px rgba(231, 76, 60, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(231, 76, 60, 0.8); }
+        }
     </style>
 </head>
 <body>
+    <div class="notification-banner" id="cpu-alert-banner">
+        CPU Usage สูงเกิน 90%! กรุณาตรวจสอบเครื่องคอมพิวเตอร์
+    </div>
 
     <div id="login-screen">
         <div class="login-card">
@@ -206,6 +286,25 @@
                 <div class="section-title" style="color: var(--red);">⚡ ประวัติการใช้พลังงาน (Watt)</div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-watt"></canvas></div>
             </div>
+
+            <div class="card neon-card">
+                <div class="section-title neon-title">🌡️ ประวัติอุณหภูมิ CPU</div>
+                <div class="temp-stats">
+                    <div class="temp-stat">
+                        <span class="temp-label">ต่ำสุด</span>
+                        <span class="temp-value neon-text" id="temp-min">0°C</span>
+                    </div>
+                    <div class="temp-stat">
+                        <span class="temp-label">ปัจจุบัน</span>
+                        <span class="temp-value neon-text neon-glow" id="temp-current">0°C</span>
+                    </div>
+                    <div class="temp-stat">
+                        <span class="temp-label">สูงสุด</span>
+                        <span class="temp-value neon-text" id="temp-max">0°C</span>
+                    </div>
+                </div>
+                <div style="position: relative; height: 180px; width: 100%;"><canvas id="chart-temp"></canvas></div>
+            </div>
         </div>
 
         <div id="tab-settings" class="tab-content">
@@ -293,7 +392,40 @@
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        let chartCpu, chartRam, chartWatt;
+        let chartCpu, chartRam, chartWatt, chartTemp;
+        let tempHistory = [];
+        let lastCpuAlertTime = 0;
+
+        // ขอสิทธิ์ Notification เมื่อโหลดหน้า
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // ฟังก์ชันแจ้งเตือน CPU สูง
+        function sendCPUAlert(cpuValue) {
+            const now = Date.now();
+            // ส่ง notification ทุก 30 วินาทีเท่านั้น (ไม่ spam)
+            if (now - lastCpuAlertTime < 30000) return;
+            lastCpuAlertTime = now;
+
+            // แสดง Banner
+            document.getElementById('cpu-alert-banner').classList.add('show');
+            setTimeout(() => {
+                document.getElementById('cpu-alert-banner').classList.remove('show');
+            }, 10000);
+
+            // ส่ง Browser Notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('ReCharge Alert', {
+                    body: `CPU Usage สูงถึง ${cpuValue}%! กรุณาตรวจสอบเครื่องคอมพิวเตอร์`,
+                    icon: '/icon-192.png',
+                    badge: '/icon-192.png',
+                    vibrate: [200, 100, 200],
+                    tag: 'cpu-alert',
+                    renotify: true
+                });
+            }
+        }
 
         // สลับหน้า Tab
         window.switchTab = (tabId, element) => {
@@ -403,10 +535,28 @@
                         document.getElementById('gauge-gpu').style.setProperty('--p', (d.GPU || 0) + '%');
                         document.getElementById('gauge-ram').style.setProperty('--p', (d.RAM || 0) + '%');
                         
-                        let cpuTemp = d.CPU_Temp || 0;
+let cpuTemp = d.CPU_Temp || 0;
                         document.getElementById('val-cpu-temp').innerText = cpuTemp + "°C";
                         document.getElementById('bar-cpu-temp').style.width = cpuTemp + "%";
                         document.getElementById('bar-cpu-temp').style.background = cpuTemp > 80 ? "var(--red)" : "var(--primary)";
+
+                        // เก็บประวัติอุณหภูมิ
+                        const now = new Date();
+                        const timeLabel = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                        tempHistory.push({ time: timeLabel, temp: cpuTemp });
+                        if (tempHistory.length > 30) tempHistory.shift();
+                        updateTempChart();
+
+                        // อัพเดทสถิติอุณหภูมิ
+                        const temps = tempHistory.map(t => t.temp);
+                        document.getElementById('temp-current').innerText = cpuTemp + "°C";
+                        document.getElementById('temp-min').innerText = Math.min(...temps) + "°C";
+                        document.getElementById('temp-max').innerText = Math.max(...temps) + "°C";
+
+                        // ตรวจสอบ CPU Alert
+                        if ((d.CPU || 0) >= 90) {
+                            sendCPUAlert(d.CPU);
+                        }
                     }
                 });
 
@@ -524,7 +674,83 @@
                     data: { labels: labels, datasets: [{ label: 'พลังงาน (Watt)', data: watt, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.2)', fill: true, tension: 0.4 }] },
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
                 });
-            }
+}
+        }
+
+        // ลงทะเบียน Service Worker สำหรับ PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('[v0] SW registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('[v0] SW registration failed:', error);
+                    });
+            });
+        }
+
+        // กราฟอุณหภูมิ CPU แบบ Neon Green
+        function updateTempChart() {
+            const labels = tempHistory.map(t => t.time);
+            const temps = tempHistory.map(t => t.temp);
+
+            const ctxTemp = document.getElementById('chart-temp');
+            if (!ctxTemp) return;
+
+            if (chartTemp) chartTemp.destroy();
+            chartTemp = new Chart(ctxTemp.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Temperature °C',
+                        data: temps,
+                        borderColor: '#00ff88',
+                        backgroundColor: (ctx) => {
+                            const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 180);
+                            gradient.addColorStop(0, 'rgba(0, 255, 136, 0.4)');
+                            gradient.addColorStop(1, 'rgba(0, 255, 136, 0.0)');
+                            return gradient;
+                        },
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#00ff88',
+                        pointBorderColor: '#1a1d24',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 20,
+                            max: 100,
+                            grid: { color: 'rgba(0, 255, 136, 0.1)' },
+                            ticks: { color: '#00ff88' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(0, 255, 136, 0.05)' },
+                            ticks: { color: '#a4b0be' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#00ff88',
+                            bodyColor: '#fff',
+                            borderColor: '#00ff88',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>
