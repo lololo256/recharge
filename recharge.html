@@ -99,7 +99,12 @@
                 <div>
                     <div style="font-size: 12px; color: var(--primary);">• ออนไลน์เชื่อมต่อแล้ว</div>
                     <div style="font-weight: 700;" id="pc-name-display">กำลังโหลดข้อมูล...</div>
-                    <div style="font-size: 10px; color: var(--text-sub);" id="uid-display">UID: กำลังโหลด...</div>
+                    
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                        <div style="font-size: 10px; color: var(--text-sub);" id="uid-display">UID: กำลังโหลด...</div>
+                        <button id="copyUidBtn" style="background: transparent; border: 1px solid var(--primary); color: var(--primary); border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; display: none; font-family: 'Prompt'; transition: 0.2s;">📋 คัดลอก</button>
+                    </div>
+
                 </div>
                 <div class="status-dot"></div>
             </div>
@@ -167,11 +172,6 @@
                 </div>
             </div>
 
-            <div class="card" style="padding: 15px; text-align: center; margin-top: 15px; background: #2f3441;">
-                <span style="font-size: 14px; font-weight: 600;">⚙️ เรทค่าไฟ : </span>
-                <input type="number" id="unitPriceInput" value="4.5" step="0.1" min="1" class="input-mini" style="width: 70px; display: inline-block; font-size: 14px; margin: 0 10px;">
-                <span style="font-size: 14px; color: var(--text-sub);">บาท/หน่วย</span>
-            </div>
         </div>
 
         <div id="tab-history" class="tab-content">
@@ -200,12 +200,17 @@
                 <div class="section-title" style="color: var(--yellow);">• GPU & RAM Usage</div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-ram"></canvas></div>
             </div>
+
+            <div class="card">
+                <div class="section-title" style="color: var(--red);">⚡ ประวัติการใช้พลังงาน (Watt)</div>
+                <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-watt"></canvas></div>
+            </div>
         </div>
 
         <div id="tab-settings" class="tab-content">
             <h2 style="margin-bottom: 20px;">⚙️ ตั้งค่าระบบ</h2>
             
-            <div class="section-title">ข้อมูลอุปกรณ์เสริม (เพื่อคำนวณวัตต์)</div>
+            <div class="section-title">ข้อมูลอุปกรณ์เสริมและค่าไฟ</div>
             <div class="card">
                 <div class="menu-item">
                     <div style="display: flex; align-items: center;">
@@ -228,7 +233,16 @@
                     </div>
                     <div class="toggle-switch" id="setup-aio" onclick="this.classList.toggle('active')"><div class="toggle-circle"></div></div>
                 </div>
-                <button onclick="saveHardwareSetup()" class="btn-login" style="margin-top: 15px; margin-bottom: 0;">💾 บันทึกสเปค</button>
+
+                <div class="menu-item" style="border: top 1px solid #353b48; margin-top: 15px; padding-top: 15px;">
+                    <div style="display: flex; align-items: center;">
+                        <div class="menu-icon" style="background: rgba(231,76,60,0.2); color: var(--red);">⚡</div>
+                        <div><div style="font-weight: 600;">เรทค่าไฟ (บาท/หน่วย)</div><div style="font-size: 10px; color: var(--text-sub);">ถูกบันทึกขึ้น Cloud เพื่อส่งให้บอร์ด</div></div>
+                    </div>
+                    <input type="number" id="setup-unit-price" class="input-mini" value="4.5" step="0.1">
+                </div>
+
+                <button onclick="saveHardwareSetup()" class="btn-login" style="margin-top: 15px; margin-bottom: 0;">💾 บันทึกสเปคและค่าไฟ</button>
             </div>
 
             <div class="section-title">การเชื่อมต่อบอร์ด ESP32</div>
@@ -278,8 +292,9 @@
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        let chartCpu, chartRam;
+        let chartCpu, chartRam, chartWatt;
 
+        // สลับหน้า Tab
         window.switchTab = (tabId, element) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -287,14 +302,16 @@
             element.classList.add('active');
         };
 
+        // ล้างค่า PC (Local WebSocket)
         window.resetWithoutLogin = () => {
-            if(confirm("ล้างค่าการเชื่อมต่อ PC เครื่องนี้ใช่ไหม? (ต้องเปิดเว็บนี้ในคอมพิวเตอร์ที่รันโค้ด Python อยู่เท่านั้น)")) {
+            if(confirm("ล้างค่าการเชื่อมต่อ PC เครื่องนี้ใช่ไหม? (ต้องเปิดเว็บในคอมที่รันโค้ด Python อยู่เท่านั้น)")) {
                 let ws = new WebSocket("ws://localhost:8765"); 
                 ws.onopen = () => { ws.send(JSON.stringify({command: "RESET_ALL"})); alert("ล้างค่า PC สำเร็จ!"); };
                 ws.onerror = () => alert("เชื่อมต่อโปรแกรม PC ไม่สำเร็จ! กรุณารัน recharge_sender.py ก่อนครับ");
             }
         };
 
+        // ส่งคำสั่งรีโมทคอมพิวเตอร์
         window.sendPCCommand = (cmd) => {
             const uid = auth.currentUser?.uid;
             if(!uid) return;
@@ -303,6 +320,7 @@
             }
         };
 
+        // ส่งคำสั่งรีเซ็ตบอร์ด ESP32
         window.sendBoardCommand = (cmd) => {
             const uid = auth.currentUser?.uid;
             if(!uid) return;
@@ -311,6 +329,7 @@
             }
         };
 
+        // 🌟 บันทึกสเปคและเรทค่าไฟลง Firebase 🌟
         window.saveHardwareSetup = () => {
             const uid = auth.currentUser?.uid;
             if(!uid) return;
@@ -318,33 +337,59 @@
                 fan_count: parseInt(document.getElementById('setup-fan').value) || 0,
                 hdd_count: parseInt(document.getElementById('setup-storage').value) || 0,
                 ssd_count: 0,
-                has_aio: document.getElementById('setup-aio').classList.contains('active')
+                has_aio: document.getElementById('setup-aio').classList.contains('active'),
+                unit_price: parseFloat(document.getElementById('setup-unit-price').value) || 4.5 
             };
-            set(ref(db, `users/${uid}/pc_setup`), setupData).then(() => alert("บันทึกสเปคเรียบร้อย!"));
+            set(ref(db, `users/${uid}/pc_setup`), setupData).then(() => alert("บันทึกสเปคและเรทค่าไฟเรียบร้อย!"));
         };
 
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => window.location.reload());
 
-        // 🌟 หัวใจสำคัญอยู่ตรงนี้ครับ: จัดการทุกอย่างเมื่อรู้แน่ชัดว่าล็อกอินแล้ว
+        // เมื่อล็อกอินสำเร็จ ให้ดึงข้อมูลทั้งหมด
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
                 document.getElementById('bottom-nav').style.display = 'flex';
+                
+                // 🌟 แสดง UID และปุ่มคัดลอก 🌟
                 document.getElementById('uid-display').innerText = "UID: " + user.uid;
+                const copyBtn = document.getElementById('copyUidBtn');
+                copyBtn.style.display = 'inline-block';
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(user.uid).then(() => {
+                        copyBtn.innerText = "✅ คัดลอกแล้ว";
+                        copyBtn.style.background = "var(--primary)";
+                        copyBtn.style.color = "#1e212b";
+                        setTimeout(() => {
+                            copyBtn.innerText = "📋 คัดลอก";
+                            copyBtn.style.background = "transparent";
+                            copyBtn.style.color = "var(--primary)";
+                        }, 2000);
+                    }).catch(err => alert("เบราว์เซอร์ไม่รองรับการคัดลอกอัตโนมัติ กรุณาคลุมดำคัดลอกเองครับ"));
+                };
 
-                // โหลด Setup 
+                let unitPrice = 4.5;
+                let globalSessions = null;
+
+                // 🌟 ดึงสเปคและเรทค่าไฟจากคลาวด์ 🌟
                 onValue(ref(db, `users/${user.uid}/pc_setup`), (snap) => {
                     const setup = snap.val();
                     if(setup) {
                         document.getElementById('setup-fan').value = setup.fan_count || 0;
                         document.getElementById('setup-storage').value = (setup.hdd_count || 0) + (setup.ssd_count || 0);
                         if(setup.has_aio) document.getElementById('setup-aio').classList.add('active');
+                        
+                        if(setup.unit_price) {
+                            unitPrice = setup.unit_price;
+                            document.getElementById('setup-unit-price').value = unitPrice;
+                            calculateCost(); // คำนวณเงินใหม่ทันที
+                        }
                     }
                 });
 
-                // ดึงข้อมูล Real-time
+                // ดึงข้อมูล Real-time Monitor
                 onValue(ref(db, `users/${user.uid}/PC_Monitor`), (snap) => {
                     const d = snap.val();
                     if(d) {
@@ -364,27 +409,6 @@
                     }
                 });
 
-                // ดึงข้อมูลประวัติ (กราฟ)
-                onValue(query(ref(db, `users/${user.uid}/history_logs`), limitToLast(30)), (snap) => {
-                    const logs = snap.val();
-                    if(logs) {
-                        let labels=[], cpu=[], gpu=[], ram=[];
-                        let sumCpu=0, sumGpu=0, sumRam=0, count=0;
-                        
-                        Object.values(logs).forEach(log => {
-                            labels.push(log.timestamp.split(' ')[1].substring(0,5));
-                            cpu.push(log.cpu); gpu.push(log.gpu); ram.push(log.ram);
-                            sumCpu+=log.cpu; sumGpu+=log.gpu; sumRam+=log.ram; count++;
-                        });
-                        
-                        document.getElementById('avg-cpu').innerText = Math.round(sumCpu/count) + "%";
-                        document.getElementById('avg-gpu').innerText = Math.round(sumGpu/count) + "%";
-                        document.getElementById('avg-ram').innerText = Math.round(sumRam/count) + "%";
-                        
-                        updateCharts(labels, cpu, gpu, ram);
-                    }
-                });
-
                 // ดึง Hardware Info
                 onValue(ref(db, `users/${user.uid}/hardware_info`), (snap) => {
                     if(snap.val()) {
@@ -394,41 +418,42 @@
                     }
                 });
 
-                // ============================================
-                // 🌟 ระบบคำนวณค่าไฟและตัดรอบเดือน (แก้ไขให้สมบูรณ์)
-                // ============================================
-                let unitPrice = 4.5;
-                const savedPrice = localStorage.getItem('recharge_unit_price');
-                if (savedPrice) { 
-                    unitPrice = parseFloat(savedPrice); 
-                    document.getElementById('unitPriceInput').value = unitPrice; 
-                }
-                
-                let globalSessions = null;
-
-                document.getElementById('unitPriceInput').addEventListener('input', (e) => {
-                    let val = parseFloat(e.target.value);
-                    if (!isNaN(val) && val > 0) { 
-                        unitPrice = val; 
-                        localStorage.setItem('recharge_unit_price', unitPrice); 
-                        calculateCost(); 
+                // ดึงข้อมูล History Logs (เพื่อวาดกราฟ)
+                onValue(query(ref(db, `users/${user.uid}/history_logs`), limitToLast(30)), (snap) => {
+                    const logs = snap.val();
+                    if(logs) {
+                        let labels=[], cpu=[], gpu=[], ram=[], watt=[];
+                        let sumCpu=0, sumGpu=0, sumRam=0, count=0;
+                        
+                        Object.values(logs).forEach(log => {
+                            labels.push(log.timestamp.split(' ')[1].substring(0,5));
+                            cpu.push(log.cpu); gpu.push(log.gpu); ram.push(log.ram);
+                            watt.push(log.watt || 0); 
+                            sumCpu+=log.cpu; sumGpu+=log.gpu; sumRam+=log.ram; count++;
+                        });
+                        
+                        document.getElementById('avg-cpu').innerText = Math.round(sumCpu/count) + "%";
+                        document.getElementById('avg-gpu').innerText = Math.round(sumGpu/count) + "%";
+                        document.getElementById('avg-ram').innerText = Math.round(sumRam/count) + "%";
+                        
+                        updateCharts(labels, cpu, gpu, ram, watt);
                     }
                 });
 
+                // ฟังก์ชันคำนวณเงินค่าไฟ (ตัดรอบเดือนอัตโนมัติ)
                 function calculateCost() {
                     if (!globalSessions) return;
                     let totalMinsToday = 0, totalMinsMonth = 0;
                     let costToday = 0, costMonth = 0;
                     let latestAvgWatt = 0;
 
-                    // แปลงเวลาให้เป็นโครงสร้างเพื่อเปรียบเทียบกับฐานข้อมูล
                     const now = new Date();
                     const year = now.getFullYear();
                     const month = String(now.getMonth() + 1).padStart(2, '0');
                     const day = String(now.getDate()).padStart(2, '0');
 
-                    const todayStr = `${year}-${month}-${day}`; // จะได้ "2026-03-31"
-                    const currentMonthStr = `${year}-${month}`; // จะได้ "2026-03"
+                    const todayStr = `${year}-${month}-${day}`; 
+                    const currentMonthStr = `${year}-${month}`; 
 
                     Object.values(globalSessions).forEach(session => {
                         if (session.start_time) {
@@ -438,14 +463,11 @@
 
                             const sessionCost = ((avgWatt * (mins / 60)) / 1000) * unitPrice;
 
-                            // 🌟 เทียบตัวหนังสือเพื่อตัดรอบอัตโนมัติ 
                             if (session.start_time.startsWith(todayStr)) {
-                                totalMinsToday += mins; 
-                                costToday += sessionCost;
+                                totalMinsToday += mins; costToday += sessionCost;
                             }
                             if (session.start_time.startsWith(currentMonthStr)) {
-                                totalMinsMonth += mins; 
-                                costMonth += sessionCost;
+                                totalMinsMonth += mins; costMonth += sessionCost;
                             }
                         }
                     });
@@ -459,7 +481,7 @@
                     document.getElementById('bar-watt').style.width = Math.min((latestAvgWatt/500)*100, 100) + "%";
                 }
 
-                // 🌟 ดึงข้อมูล Sessions ทั้งหมด (สำคัญมาก! เพื่อให้คิดเงินได้ถูกทุกรอบบิล)
+                // ดึงข้อมูล Sessions มารวมยอด
                 onValue(ref(db, `users/${user.uid}/sessions`), (snap) => {
                     globalSessions = snap.val();
                     calculateCost();
@@ -467,8 +489,8 @@
             }
         });
 
-        // 🌟 วาดกราฟ Chart.js
-        function updateCharts(labels, cpu, gpu, ram) {
+        // 🌟 ฟังก์ชันวาดกราฟทั้งหมด (เพิ่ม Chart Watt) 🌟
+        function updateCharts(labels, cpu, gpu, ram, watt) {
             Chart.defaults.color = '#a4b0be';
             Chart.defaults.font.family = 'Prompt';
 
@@ -490,6 +512,18 @@
                 ]},
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { position: 'bottom'} } }
             });
+
+            // 🌟 วาดกราฟ Watt
+            const ctxWattContainer = document.getElementById('chart-watt');
+            if (ctxWattContainer) {
+                const ctxWatt = ctxWattContainer.getContext('2d');
+                if(chartWatt) chartWatt.destroy();
+                chartWatt = new Chart(ctxWatt, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: 'พลังงาน (Watt)', data: watt, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.2)', fill: true, tension: 0.4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+                });
+            }
         }
     </script>
 </body>
