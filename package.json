@@ -1,0 +1,12 @@
+{
+  "name": "recharge-companion",
+  "version": "1.0.0",
+  "description": "Monitor and control your PC remotely",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}
