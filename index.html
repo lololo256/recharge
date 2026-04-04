@@ -4,7 +4,7 @@
     <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReCharge Companion</title>
+    <title>ReCharge Premium</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -18,7 +18,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Prompt', sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
         
-        /* จัดการระดับของ Material Symbols */
         .material-symbols-rounded { vertical-align: middle; display: inline-block; }
 
         /* ================= Login Screen ================= */
@@ -36,7 +35,7 @@
 
         /* ================= Header & Cards ================= */
         .header-status { background: var(--bg-card); padding: 15px 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .status-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--primary); }
+        .status-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--primary); transition: 0.3s; }
         
         .section-title { font-size: 14px; font-weight: 600; color: var(--text-sub); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
         .card { background: var(--bg-card); padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
@@ -58,6 +57,12 @@
         .hw-sub { font-size: 10px; color: var(--text-sub); }
         .hw-val-right { position: absolute; right: 0; top: -18px; font-size: 12px; color: var(--text-sub); }
 
+        /* ================= Top Apps List ================= */
+        .top-app-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #353b48; border-radius: 10px; margin-bottom: 8px; }
+        .top-app-item:last-child { margin-bottom: 0; }
+        .top-app-name { font-size: 13px; font-weight: 600; color: white; display: flex; align-items: center; gap: 8px; }
+        .top-app-cpu { font-size: 13px; font-weight: 700; color: var(--primary); }
+
         /* ================= Control Buttons ================= */
         .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .btn-ctrl { padding: 15px; border: none; border-radius: 12px; font-family: 'Prompt'; font-size: 14px; font-weight: 600; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.1s; }
@@ -75,6 +80,129 @@
         .toggle-switch.active .toggle-circle { left: 23px; }
         .input-mini { width: 50px; text-align: center; background: #353b48; border: none; color: white; border-radius: 6px; padding: 5px; font-family: 'Prompt'; }
 
+        /* ================= Feature 1: Kill Button ================= */
+        .top-app-item { position: relative; }
+        .kill-btn {
+            background: rgba(231,76,60,0.12); border: 1px solid var(--red);
+            color: var(--red); border-radius: 8px; width: 30px; height: 30px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: 0.15s; font-size: 0; padding: 0;
+        }
+        .kill-btn .material-symbols-rounded { font-size: 16px; }
+        .kill-btn:active { background: var(--red); color: white; transform: scale(0.9); }
+        .kill-result-toast {
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+            background: #1a2a1a; border: 1px solid var(--primary); color: var(--primary);
+            border-radius: 10px; padding: 10px 20px; font-size: 13px; font-weight: 600;
+            z-index: 9997; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+            white-space: nowrap;
+        }
+        .kill-result-toast.show { opacity: 1; }
+
+        /* ================= Feature 2: Gaming Mode ================= */
+        .gaming-banner {
+            background: linear-gradient(135deg, #2d0a0a 0%, #1c0606 100%);
+            border: 1px solid rgba(231,76,60,0.5); border-radius: 16px;
+            padding: 16px 20px; margin-bottom: 20px; display: none;
+            animation: pulseRed 2.5s ease-in-out infinite;
+        }
+        .gaming-banner.active { display: flex; align-items: center; gap: 14px; }
+        @keyframes pulseRed {
+            0%, 100% { box-shadow: 0 0 16px rgba(231,76,60,0.25); }
+            50% { box-shadow: 0 0 32px rgba(231,76,60,0.55); }
+        }
+        .gaming-icon {
+            font-size: 36px; width: 54px; height: 54px; background: rgba(231,76,60,0.15);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .gaming-stats { display: flex; gap: 20px; margin-top: 8px; }
+        .gaming-stat-val { font-size: 20px; font-weight: 700; color: var(--red); line-height: 1; }
+        .gaming-stat-label { font-size: 10px; color: var(--text-sub); }
+
+        /* Body in gaming mode: red-tint gauges */
+        body.gaming-active .gauges-container {
+            background: linear-gradient(160deg, #2a0d0d, #1e212b);
+            border: 1px solid rgba(231,76,60,0.25);
+        }
+        body.gaming-active #gauge-cpu { --c: #e74c3c !important; }
+
+        /* ================= Feature 3: Alert Toasts ================= */
+        #alert-container {
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+            width: 92%; max-width: 420px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+        }
+        .alert-toast {
+            background: #1e0d0d; border-radius: 14px; padding: 14px 16px;
+            display: flex; align-items: flex-start; gap: 12px;
+            pointer-events: all; animation: slideToast 0.3s ease;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+        }
+        .alert-toast.cpu  { border: 1px solid #e74c3c; }
+        .alert-toast.cost { border: 1px solid #f1c40f; background: #1e1a05; }
+        @keyframes slideToast {
+            from { opacity: 0; transform: translateY(-16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .alert-toast-icon { font-size: 26px; flex-shrink: 0; }
+        .alert-toast-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+        .alert-toast-body { font-size: 11px; color: var(--text-sub); line-height: 1.5; }
+        .alert-close {
+            margin-left: auto; background: transparent; border: none;
+            color: var(--text-sub); cursor: pointer; font-size: 18px; padding: 0 0 0 8px;
+            flex-shrink: 0; align-self: flex-start;
+        }
+
+        /* ================= Date Picker Fix ================= */
+        #history-date-picker {
+            -webkit-appearance: none; appearance: none;
+            background: var(--primary); color: #1e212b;
+            border: none; border-radius: 10px; padding: 8px 14px;
+            font-family: 'Prompt'; font-size: 13px; font-weight: 700;
+            cursor: pointer; min-width: 130px; text-align: center;
+        }
+        #history-date-picker::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(0); cursor: pointer;
+            width: 20px; height: 20px;
+        }
+
+        /* ================= Battery Bar ================= */
+        .battery-bar-wrap { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .battery-bar-bg { flex: 1; background: #353b48; height: 8px; border-radius: 4px; overflow: hidden; }
+        .battery-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+
+        /* ================= Monthly / Yearly Summary ================= */
+        .year-month-card { background: var(--bg-card); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+        .year-month-card .ym-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+        .year-month-card .ym-month  { font-size:15px; font-weight:700; }
+        .year-month-card .ym-cost   { font-size:18px; font-weight:700; color:var(--yellow); }
+        .ym-stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+        .ym-stat { background:#353b48; border-radius:10px; padding:10px; text-align:center; }
+        .ym-stat-val  { font-size:16px; font-weight:700; }
+        .ym-stat-label { font-size:10px; color:var(--text-sub); margin-top:2px; }
+        .ym-apps { margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
+        .ym-app-chip { background:rgba(32,201,151,0.12); border:1px solid rgba(32,201,151,0.3); color:var(--primary); border-radius:20px; padding:3px 10px; font-size:11px; font-weight:600; }
+        .year-total-bar { background:rgba(241,196,15,0.1); border:1px solid var(--yellow); border-radius:14px; padding:16px; margin-bottom:20px; }
+        .year-total-bar h3 { font-size:14px; color:var(--yellow); margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+        .year-stat-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #353b48; font-size:13px; }
+        .year-stat-row:last-child { border-bottom:none; }
+        .year-stat-row span:last-child { font-weight:700; color:var(--text-main); }
+        #summary-loading { text-align:center; padding:30px; color:var(--text-sub); font-size:13px; }
+
+        /* ================= Gaming Log Tab ================= */
+        .game-log-card { background: var(--bg-card); border-radius: 14px; padding: 16px; margin-bottom: 14px; border-left: 4px solid var(--red); }
+        .game-log-title { font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+        .game-log-mins { font-size: 22px; font-weight: 700; color: var(--red); }
+        .game-log-sub { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+        .game-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #353b48; }
+        .game-row:last-child { border-bottom: none; }
+        .game-row-name { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .game-row-mins { font-size: 13px; font-weight: 700; color: var(--primary); }
+        .month-toggle { background: transparent; border: 1px solid var(--text-sub); color: var(--text-sub); border-radius: 8px; padding: 5px 12px; font-family: 'Prompt'; font-size: 12px; cursor: pointer; }
+        .month-toggle.active { border-color: var(--primary); color: var(--primary); }
+        #gaming-log-empty { font-size: 13px; color: var(--text-sub); text-align: center; padding: 30px 0; }
+
         /* ================= Bottom Navigation ================= */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--bg-nav); padding: 10px 20px; display: flex; justify-content: space-around; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 100; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #a4b0be; cursor: pointer; font-size: 11px; font-weight: 600; text-decoration: none; }
@@ -87,14 +215,10 @@
 
     <div id="login-screen">
         <div class="login-card">
-            <h2>ReCharge Companion</h2>
+            <h2>ReCharge Premium</h2>
             <p style="color: var(--text-sub); margin-bottom: 30px; font-size: 14px;">กรุณาเข้าสู่ระบบเพื่อควบคุมคอมพิวเตอร์</p>
             <button id="loginBtn" class="btn-login"><span class="material-symbols-rounded">login</span> เข้าสู่ระบบด้วย Google</button>
-            
-            <div style="margin: 20px 0; border-top: 1px solid #353b48; padding-top: 20px;">
-                <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 10px;">มีปัญหาการเชื่อมต่อบอร์ดกับคอมพิวเตอร์?</p>
-                <button onclick="resetWithoutLogin()" class="btn-reset-pc"><span class="material-symbols-rounded">sync</span> ล้างการเชื่อมต่อ PC เครื่องนี้</button>
-            </div>
+            <p style="font-size: 11px; color: #a4b0be; margin-top: 15px;">*เวอร์ชัน Premium</p>
         </div>
     </div>
 
@@ -103,7 +227,7 @@
         <div id="tab-home" class="tab-content active">
             <div class="header-status">
                 <div>
-                    <div style="font-size: 12px; color: var(--primary);">• ออนไลน์เชื่อมต่อแล้ว</div>
+                    <div id="status-text" style="font-size: 12px; font-weight: 600; color: var(--primary); transition: 0.3s;">• ออนไลน์เชื่อมต่อแล้ว</div>
                     <div style="font-weight: 700;" id="pc-name-display">กำลังโหลดข้อมูล...</div>
                     
                     <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
@@ -112,12 +236,11 @@
                             <span class="material-symbols-rounded" style="font-size: 14px;">content_copy</span> คัดลอก
                         </button>
                     </div>
-
                 </div>
-                <div class="status-dot"></div>
+                <div id="status-dot" class="status-dot"></div>
             </div>
 
-            <div class="section-title"><span class="material-symbols-rounded" style="font-size: 18px;">speed</span> ข้อมูลการใช้งานแบบเรียลไทม์</div>
+            <div class="section-title"><span class="material-symbols-rounded" style="font-size: 18px;">speed</span> สภาพเครื่องแบบเรียลไทม์</div>
             <div class="gauges-container">
                 <div class="gauge-wrapper">
                     <div class="gauge-circle" id="gauge-cpu" style="--c: var(--primary); --p: 0%;">
@@ -158,12 +281,101 @@
                 </div>
             </div>
 
-            <div class="section-title"><span class="material-symbols-rounded" style="font-size: 18px;">settings_remote</span> ควบคุมเครื่อง (Remote Control)</div>
+            <div class="hw-grid">
+                <div class="card" style="margin:0; padding:15px; border-left: 3px solid var(--purple);">
+                    <div class="hw-title">ความเร็วเน็ตล่าสุด</div>
+                    <div class="hw-sub" style="margin-top: 5px; font-size: 11px;">
+                        <span style="color: var(--primary);">↓ <span id="val-dl">0.0</span></span> Mbps<br>
+                        <span style="color: var(--purple);">↑ <span id="val-ul">0.0</span></span> Mbps
+                    </div>
+                </div>
+                <div class="card" style="margin:0; padding:15px; border-left: 3px solid var(--primary);">
+                    <div class="hw-title">พื้นที่ว่าง (Drive C:)</div>
+                    <div class="hw-sub" style="margin-top: 5px; font-size: 16px; font-weight: bold; color: var(--text-main);">
+                        <span id="val-storage">0.0</span> GB
+                    </div>
+                </div>
+            </div>
+            <!-- Battery row (แสดงเฉพาะเมื่อมีแบตเตอรี่) -->
+            <div class="card" id="battery-card" style="margin-top:0; padding:15px; display:none; border-left: 3px solid var(--yellow);">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div>
+                        <div class="hw-title">แบตเตอรี่</div>
+                        <div class="hw-sub" id="hw-battery-status">กำลังโหลด...</div>
+                    </div>
+                    <div style="font-size: 28px; font-weight: 700; color: var(--yellow);" id="val-battery">–%</div>
+                </div>
+                <div class="battery-bar-wrap">
+                    <div class="battery-bar-bg">
+                        <div class="battery-bar-fill" id="bar-battery" style="width:0%; background: var(--primary);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <div class="section-title" style="margin-bottom: 15px;"><span class="material-symbols-rounded" style="color: var(--red);">memory</span> โปรแกรมที่สูบ CPU สูงสุดตอนนี้</div>
+                <div id="top-apps-container">
+                    <div style="font-size: 12px; color: var(--text-sub); text-align: center;">กำลังสแกนระบบ...</div>
+                </div>
+            </div>
+
+            <!-- Feature 2: Gaming Mode Banner -->
+            <div class="gaming-banner" id="gaming-banner">
+                <div class="gaming-icon">🎮</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 11px; color: var(--red); font-weight: 600; letter-spacing: 1px;">GAMING MODE</div>
+                    <div style="font-size: 17px; font-weight: 700;" id="gaming-game-name">Unknown Game</div>
+                    <div class="gaming-stats">
+                        <div>
+                            <div class="gaming-stat-val" id="gaming-mins">0</div>
+                            <div class="gaming-stat-label">นาที</div>
+                        </div>
+                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+                        <div>
+                            <div class="gaming-stat-val">฿<span id="gaming-cost">0.00</span></div>
+                            <div class="gaming-stat-label">ค่าไฟแมตช์นี้</div>
+                        </div>
+                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+                        <div>
+                            <div class="gaming-stat-val" id="gaming-watt">0W</div>
+                            <div class="gaming-stat-label">พลังงาน</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 5px;"><span class="material-symbols-rounded" style="font-size: 18px;">settings_remote</span> รีโมทควบคุมคอมพิวเตอร์</div>
             <div class="ctrl-grid">
                 <button class="btn-ctrl btn-red" onclick="sendPCCommand('shutdown')"><span class="material-symbols-rounded" style="font-size: 28px;">power_settings_new</span> ปิดเครื่อง</button>
                 <button class="btn-ctrl btn-blue" onclick="sendPCCommand('restart')"><span class="material-symbols-rounded" style="font-size: 28px;">restart_alt</span> รีสตาร์ท</button>
                 <button class="btn-ctrl btn-purple" onclick="sendPCCommand('sleep')"><span class="material-symbols-rounded" style="font-size: 28px;">mode_night</span> สลีป</button>
                 <button class="btn-ctrl btn-yellow" onclick="sendPCCommand('lock')"><span class="material-symbols-rounded" style="font-size: 28px;">lock</span> ล็อคหน้าจอ</button>
+            </div>
+
+            <div class="card" style="margin-top: 15px; border-left: 3px solid var(--blue);">
+                <div class="section-title"><span class="material-symbols-rounded">schedule</span> ตั้งเวลาปิดเครื่องอัตโนมัติ (Sleep Timer)</div>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                    
+                    <select id="timer-mins" class="input-mini" style="width: auto; flex: 1; font-size: 13px; padding: 8px; cursor: pointer; background: #353b48; color: white; border: none; border-radius: 8px; font-family: 'Prompt';">
+                        <option value="10">10 นาที</option>
+                        <option value="20">20 นาที</option>
+                        <option value="30">30 นาที</option>
+                        <option value="45">45 นาที</option>
+                        <option value="60" selected>1 ชั่วโมง</option>
+                        <option value="90">1 ชั่วโมง 30 นาที</option>
+                        <option value="120">2 ชั่วโมง</option>
+                        <option value="240">4 ชั่วโมง</option>
+                        <option value="360">6 ชั่วโมง</option>
+                        <option value="480">8 ชั่วโมง</option>
+                    </select>
+
+                    <button onclick="setTimer()" class="btn-login" style="margin: 0; padding: 10px 15px; width: auto; font-size: 12px; flex: 1;"><span class="material-symbols-rounded" style="font-size: 16px;">timer</span> เริ่มจับเวลา</button>
+                    <button onclick="cancelTimer()" class="btn-reset-pc" style="margin: 0; padding: 10px 15px; width: auto; font-size: 12px;" title="ยกเลิกการตั้งเวลา"><span class="material-symbols-rounded" style="font-size: 16px;">timer_off</span></button>
+                </div>
+                
+                <div id="timer-display" style="margin-top: 15px; font-size: 13px; color: var(--blue); font-weight: 600; display: none; background: rgba(52, 152, 219, 0.1); padding: 12px; border-radius: 10px; text-align: center;">
+                    ⏳ คอมพิวเตอร์จะปิดเครื่องในอีก: <span id="timer-countdown" style="font-size: 24px; margin-left: 8px; font-weight: 700;">00:00</span>
+                </div>
             </div>
 
             <div class="section-title" style="margin-top: 25px;"><span class="material-symbols-rounded" style="font-size: 18px;">bolt</span> สรุปค่าไฟฟ้า (อิงจากวัตต์รวมจริงของระบบ)</div>
@@ -180,10 +392,26 @@
                 </div>
             </div>
 
+            <!-- 💡 AI Energy Insight — แสดงเมื่อทิ้งคอมไว้โดยไม่ใช้งาน -->
+            <div id="insight-banner" style="display:none; background:rgba(241,196,15,0.15); border:1px solid var(--yellow); border-radius:14px; padding:16px; margin-top:20px; align-items:flex-start; gap:12px; animation:fadeIn 0.5s ease;">
+                <div style="font-size:28px; line-height:1;">💡</div>
+                <div>
+                    <div style="font-size:13px; font-weight:700; color:var(--yellow); margin-bottom:4px;">AI Energy Insight</div>
+                    <div id="insight-text" style="font-size:12px; color:var(--text-main); line-height:1.5;">กำลังวิเคราะห์พฤติกรรมการใช้งาน...</div>
+                </div>
+            </div>
+
         </div>
 
         <div id="tab-history" class="tab-content">
-            <h2 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;"><span class="material-symbols-rounded" style="font-size: 28px;">stacked_line_chart</span> ประวัติการใช้งาน</h2>
+            <!-- ===== ส่วนที่ 1: ประวัติการใช้งาน ===== -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded" style="font-size: 28px;">stacked_line_chart</span> ประวัติการใช้งาน
+                </h2>
+                <input type="date" id="history-date-picker" class="input-mini" style="width: auto; padding: 5px 10px; cursor: pointer; background: var(--primary); color: #1e212b; font-weight: bold; border-radius: 8px;">
+            </div>
+
             <div class="hw-grid" style="grid-template-columns: 1fr 1fr 1fr;">
                 <div class="card" style="padding: 10px; text-align: center; margin: 0; background: rgba(32, 201, 151, 0.1); border: 1px solid var(--primary);">
                     <div style="font-size: 10px; color: var(--text-sub);">เฉลี่ย CPU</div>
@@ -213,6 +441,91 @@
                 <div class="section-title" style="color: var(--red);"><span class="material-symbols-rounded" style="font-size: 16px;">bolt</span> ประวัติการใช้พลังงาน (Watt)</div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-watt"></canvas></div>
             </div>
+
+            <div class="card">
+                <div class="section-title" style="color: var(--red);"><span class="material-symbols-rounded" style="font-size: 16px;">thermostat</span> ประวัติอุณหภูมิ (°C)</div>
+                <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-temp"></canvas></div>
+            </div>
+
+            <div class="card">
+                <div class="section-title" style="color: var(--purple);"><span class="material-symbols-rounded" style="font-size: 16px;">wifi_tethering</span> ประวัติอินเทอร์เน็ต (Mbps)</div>
+                <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-net"></canvas></div>
+            </div>
+
+            <div class="card">
+                <div class="section-title" style="color: var(--primary);"><span class="material-symbols-rounded" style="font-size: 16px;">history</span> สรุปโปรแกรมที่ใช้งานหนักของวันนี้ (Top 5)</div>
+                <div id="history-apps-container">
+                    <div style="font-size: 12px; color: var(--text-sub); text-align: center;">กำลังรวบรวมข้อมูล...</div>
+                </div>
+            </div>
+
+            <!-- ===== ส่วนที่ 2: สถิติเกม (รวมเข้ามาแล้ว) ===== -->
+            <div style="border-top: 2px solid #353b48; margin-top: 10px; padding-top: 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h2 style="margin:0; display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-rounded" style="font-size:28px; color:var(--red);">sports_esports</span> สถิติเกม
+                    </h2>
+                    <div style="display:flex; gap:8px;">
+                        <button class="month-toggle active" id="toggle-daily" onclick="showGamingTab('daily')">วันนี้</button>
+                        <button class="month-toggle" id="toggle-monthly" onclick="showGamingTab('monthly')">เดือนนี้</button>
+                    </div>
+                </div>
+
+                <!-- ปฏิทินเลือกวัน -->
+                <div id="gaming-date-row" style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                    <span style="font-size:13px; color:var(--text-sub);">เลือกวัน:</span>
+                    <input type="date" id="gaming-date-picker" style="-webkit-appearance:none; appearance:none; background:var(--primary); color:#1e212b; border:none; border-radius:10px; padding:8px 14px; font-family:'Prompt'; font-size:13px; font-weight:700; cursor:pointer;">
+                </div>
+
+                <!-- Summary cards -->
+                <div class="hw-grid" style="margin-bottom:16px;">
+                    <div class="card" style="margin:0; padding:15px; background:rgba(231,76,60,0.1); border:1px solid var(--red); text-align:center;">
+                        <div style="font-size:11px; color:var(--text-sub);" id="gaming-summary-label">รวมวันนี้</div>
+                        <div class="game-log-mins" id="gaming-total-mins">0</div>
+                        <div style="font-size:11px; color:var(--text-sub);">นาที</div>
+                    </div>
+                    <div class="card" style="margin:0; padding:15px; background:rgba(241,196,15,0.1); border:1px solid var(--yellow); text-align:center;">
+                        <div style="font-size:11px; color:var(--text-sub);">ค่าไฟรวม</div>
+                        <div style="font-size:22px; font-weight:700; color:var(--yellow);">฿<span id="gaming-total-cost">0.00</span></div>
+                        <div style="font-size:11px; color:var(--text-sub);">บาท</div>
+                    </div>
+                </div>
+
+                <!-- รายการเกม -->
+                <div class="section-title"><span class="material-symbols-rounded" style="font-size:16px;">videogame_asset</span> รายละเอียดแยกรายเกม</div>
+                <div id="gaming-games-list">
+                    <div id="gaming-log-empty">กำลังโหลดข้อมูล...</div>
+                </div>
+
+                <!-- Monthly: แยกรายวันในเดือน -->
+                <div id="gaming-monthly-days" style="display:none;">
+                    <div class="section-title" style="margin-top:20px;"><span class="material-symbols-rounded" style="font-size:16px;">calendar_month</span> สรุปรายวันในเดือนนี้</div>
+                    <div id="gaming-days-list"></div>
+                </div>
+
+                <!-- Yearly Summary -->
+                <div style="margin-top:30px; padding-top:20px; border-top:1px solid #353b48;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <div class="section-title" style="margin:0;">
+                            <span class="material-symbols-rounded" style="font-size:18px; color:var(--yellow);">workspace_premium</span>
+                            <span style="color:var(--yellow);">สรุปรายปี <span id="year-label">2026</span></span>
+                        </div>
+                        <select id="year-select" style="background:#353b48; color:var(--text-main); border:none; border-radius:8px; padding:6px 10px; font-family:'Prompt'; font-size:12px; cursor:pointer;">
+                        </select>
+                    </div>
+                    <div class="year-total-bar" id="year-total-bar" style="display:none;">
+                        <h3><span class="material-symbols-rounded" style="font-size:16px;">summarize</span> รวมทั้งปี</h3>
+                        <div class="year-stat-row"><span>⏱️ ชม.ใช้งานรวม</span><span id="yr-total-hrs">–</span></div>
+                        <div class="year-stat-row"><span>⚡ ค่าไฟรวม</span><span id="yr-total-cost">–</span></div>
+                        <div class="year-stat-row"><span>🔌 พลังงานรวม</span><span id="yr-total-kwh">–</span></div>
+                        <div class="year-stat-row"><span>🎮 ชม.เล่นเกมรวม</span><span id="yr-total-game">–</span></div>
+                        <div class="year-stat-row"><span>🖥️ CPU เฉลี่ยทั้งปี</span><span id="yr-avg-cpu">–</span></div>
+                        <div class="year-stat-row"><span>💾 RAM เฉลี่ยทั้งปี</span><span id="yr-avg-ram">–</span></div>
+                    </div>
+                    <div id="summary-loading">กำลังโหลดข้อมูล...</div>
+                    <div id="monthly-summary-list"></div>
+                </div>
+            </div>
         </div>
 
         <div id="tab-settings" class="tab-content">
@@ -230,9 +543,16 @@
                 <div class="menu-item">
                     <div style="display: flex; align-items: center;">
                         <div class="menu-icon" style="background: rgba(241,196,15,0.2); color: var(--yellow);"><span class="material-symbols-rounded">hard_drive</span></div>
-                        <div><div style="font-weight: 600;">ฮาร์ดดิสก์ HDD/SSD</div><div style="font-size: 10px; color: var(--text-sub);">รวมกันกี่ลูก</div></div>
+                        <div><div style="font-weight: 600;">ฮาร์ดดิสก์ (HDD)</div><div style="font-size: 10px; color: var(--text-sub);">แบบจานหมุน</div></div>
                     </div>
-                    <input type="number" id="setup-storage" class="input-mini" value="2">
+                    <input type="number" id="setup-hdd" class="input-mini" value="1">
+                </div>
+                <div class="menu-item">
+                    <div style="display: flex; align-items: center;">
+                        <div class="menu-icon" style="background: rgba(32,201,151,0.2); color: var(--primary);"><span class="material-symbols-rounded">dns</span></div>
+                        <div><div style="font-weight: 600;">ฮาร์ดดิสก์ (SSD)</div><div style="font-size: 10px; color: var(--text-sub);">แบบชิป SATA/M.2</div></div>
+                    </div>
+                    <input type="number" id="setup-ssd" class="input-mini" value="1">
                 </div>
                 <div class="menu-item" style="border: none;">
                     <div style="display: flex; align-items: center;">
@@ -250,21 +570,29 @@
                     <input type="number" id="setup-unit-price" class="input-mini" value="4.5" step="0.1">
                 </div>
 
-                <button onclick="saveHardwareSetup()" class="btn-login" style="margin-top: 15px; margin-bottom: 0;"><span class="material-symbols-rounded">save</span> บันทึกสเปคและค่าไฟ</button>
+                <button onclick="saveHardwareSetup()" class="btn-login" style="margin-top: 15px; margin-bottom: 0;"><span class="material-symbols-rounded">save</span> บันทึกสเปค</button>
             </div>
 
-            <div class="section-title">การเชื่อมต่อบอร์ด ESP32</div>
+            <div class="section-title">การเชื่อมต่อและบัญชีผู้ใช้</div>
             <div class="card">
-                <div class="menu-item" style="border:none;">
+                <div class="menu-item" style="border:none; padding-bottom: 0;">
+                    <div style="display: flex; align-items: center;">
+                        <div class="menu-icon" style="background: rgba(155,89,182,0.2); color: var(--purple);"><span class="material-symbols-rounded">manage_accounts</span></div>
+                        <div><div style="font-weight: 600;">เปลี่ยนบัญชีในคอม (Reset UID)</div><div style="font-size: 10px; color: var(--text-sub);">สั่งให้คอมเด้งหน้าต่างกรอกรหัสใหม่</div></div>
+                    </div>
+                </div>
+                <button onclick="sendPCCommand('reset_uid')" class="btn-reset-pc" style="margin-top: 15px; border-color: var(--purple); color: var(--purple);"><span class="material-symbols-rounded">open_in_new</span> สั่งเด้งหน้าต่างใส่รหัสใหม่ที่จอคอม</button>
+                
+                <div class="menu-item" style="border-top: 1px solid #353b48; margin-top: 15px; padding-top: 15px; border-bottom: none;">
                     <div style="display: flex; align-items: center;">
                         <div class="menu-icon" style="background: rgba(231,76,60,0.2); color: var(--red);"><span class="material-symbols-rounded">wifi</span></div>
-                        <div><div style="font-weight: 600;">ตั้งค่า WiFi บอร์ดใหม่</div><div style="font-size: 10px; color: var(--text-sub);">สั่งล้างความจำและรีเซ็ตบอร์ด ESP32</div></div>
+                        <div><div style="font-weight: 600;">ตั้งค่า WiFi บอร์ดใหม่</div><div style="font-size: 10px; color: var(--text-sub);">สั่งรีเซ็ตบอร์ด ESP32</div></div>
                     </div>
                 </div>
                 <button onclick="sendBoardCommand('reset_wifi')" class="btn-reset-pc" style="margin-top: 5px;"><span class="material-symbols-rounded">warning</span> สั่งรีเซ็ต WiFi บอร์ด</button>
             </div>
 
-            <button id="logoutBtn" class="btn-login" style="background: #353b48; margin-top: 20px;"><span class="material-symbols-rounded">logout</span> ออกจากระบบ</button>
+            <button id="logoutBtn" class="btn-login" style="background: #353b48; margin-top: 20px;"><span class="material-symbols-rounded">logout</span> ออกจากระบบเว็บ</button>
         </div>
     </div>
 
@@ -273,17 +601,24 @@
             <div class="nav-icon"><span class="material-symbols-rounded">home</span></div><div>หน้าหลัก</div>
         </a>
         <a class="nav-item" onclick="switchTab('history', this)">
-            <div class="nav-icon"><span class="material-symbols-rounded">bar_chart</span></div><div>ประวัติ</div>
+            <div class="nav-icon"><span class="material-symbols-rounded">bar_chart</span></div><div>ประวัติ & เกม</div>
         </a>
         <a class="nav-item" onclick="switchTab('settings', this)">
             <div class="nav-icon"><span class="material-symbols-rounded">settings</span></div><div>ตั้งค่า</div>
         </a>
     </div>
 
+    <!-- Feature 3: Alert Toast Container -->
+    <div id="alert-container"></div>
+
+    <!-- Feature 1: Kill feedback toast -->
+    <div class="kill-result-toast" id="kill-toast"></div>
+
     <script type="module">
+        // 🌟 อัปเกรดคำสั่ง Import ให้ดึงประวัติตามวันที่ได้
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getDatabase, ref, onValue, query, limitToLast, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, onValue, get, query, limitToLast, set, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDsiZf_nHuDjXm5_lvFbjIPq8akOZfiRQ0",
@@ -300,7 +635,8 @@
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        let chartCpu, chartRam, chartWatt;
+        let chartCpu, chartRam, chartWatt, chartNet, chartTemp;
+        let offlineTimer = null; 
 
         window.switchTab = (tabId, element) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -309,19 +645,13 @@
             element.classList.add('active');
         };
 
-        window.resetWithoutLogin = () => {
-            if(confirm("ล้างค่าการเชื่อมต่อ PC เครื่องนี้ใช่ไหม? (ต้องเปิดเว็บในคอมที่รันโค้ด Python อยู่เท่านั้น)")) {
-                let ws = new WebSocket("ws://localhost:8765"); 
-                ws.onopen = () => { ws.send(JSON.stringify({command: "RESET_ALL"})); alert("ล้างค่า PC สำเร็จ!"); };
-                ws.onerror = () => alert("เชื่อมต่อโปรแกรม PC ไม่สำเร็จ! กรุณารัน recharge_sender.py ก่อนครับ");
-            }
-        };
-
         window.sendPCCommand = (cmd) => {
             const uid = auth.currentUser?.uid;
             if(!uid) return;
-            if(confirm(`ยืนยันสั่ง ${cmd.toUpperCase()} คอมพิวเตอร์?`)) {
-                set(ref(db, `users/${uid}/PC_Control/command`), cmd).then(() => alert("ส่งคำสั่งแล้ว!"));
+            let msg = cmd === 'reset_uid' ? 'ยืนยันสั่งให้จอคอมพิวเตอร์เด้งหน้าต่างกรอก UID ใหม่ใช่ไหม?' : `ยืนยันสั่ง ${cmd.toUpperCase()} คอมพิวเตอร์?`;
+            
+            if(confirm(msg)) {
+                set(ref(db, `users/${uid}/PC_Control/command`), cmd).then(() => alert("ส่งคำสั่งแล้ว! กรุณารอดูที่หน้าจอคอมพิวเตอร์ครับ"));
             }
         };
 
@@ -338,8 +668,8 @@
             if(!uid) return;
             const setupData = {
                 fan_count: parseInt(document.getElementById('setup-fan').value) || 0,
-                hdd_count: parseInt(document.getElementById('setup-storage').value) || 0,
-                ssd_count: 0,
+                hdd_count: parseInt(document.getElementById('setup-hdd').value) || 0,
+                ssd_count: parseInt(document.getElementById('setup-ssd').value) || 0,
                 has_aio: document.getElementById('setup-aio').classList.contains('active'),
                 unit_price: parseFloat(document.getElementById('setup-unit-price').value) || 4.5 
             };
@@ -356,6 +686,7 @@
                 document.getElementById('bottom-nav').style.display = 'flex';
                 
                 document.getElementById('uid-display').innerText = "UID: " + user.uid;
+
                 const copyBtn = document.getElementById('copyUidBtn');
                 copyBtn.style.display = 'flex';
                 copyBtn.onclick = () => {
@@ -378,8 +709,10 @@
                     const setup = snap.val();
                     if(setup) {
                         document.getElementById('setup-fan').value = setup.fan_count || 0;
-                        document.getElementById('setup-storage').value = (setup.hdd_count || 0) + (setup.ssd_count || 0);
+                        document.getElementById('setup-hdd').value = setup.hdd_count || 0;
+                        document.getElementById('setup-ssd').value = setup.ssd_count || 0;
                         if(setup.has_aio) document.getElementById('setup-aio').classList.add('active');
+                        else document.getElementById('setup-aio').classList.remove('active');
                         
                         if(setup.unit_price) {
                             unitPrice = setup.unit_price;
@@ -392,6 +725,12 @@
                 onValue(ref(db, `users/${user.uid}/PC_Monitor`), (snap) => {
                     const d = snap.val();
                     if(d) {
+                        clearTimeout(offlineTimer);
+                        document.getElementById('status-text').innerText = "• ออนไลน์เชื่อมต่อแล้ว";
+                        document.getElementById('status-text').style.color = "var(--primary)";
+                        document.getElementById('status-dot').style.background = "var(--primary)";
+                        document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--primary)";
+
                         document.getElementById('val-cpu').innerText = d.CPU || 0;
                         document.getElementById('val-gpu').innerText = d.GPU || 0;
                         document.getElementById('val-ram').innerText = d.RAM || 0;
@@ -405,66 +744,295 @@
                         document.getElementById('val-cpu-temp').innerText = cpuTemp + "°C";
                         document.getElementById('bar-cpu-temp').style.width = cpuTemp + "%";
                         document.getElementById('bar-cpu-temp').style.background = cpuTemp > 80 ? "var(--red)" : "var(--primary)";
+
+                        document.getElementById('val-dl').innerText = (d.Net_DL_Mbps || 0).toFixed(2);
+                        document.getElementById('val-ul').innerText = (d.Net_UL_Mbps || 0).toFixed(2);
+                        document.getElementById('val-storage').innerText = (d.Storage_C_Free_GB || 0).toFixed(1);
+
+                        // 💡 แสดง AI Energy Insight
+                        const insightBanner = document.getElementById('insight-banner');
+                        const insightText = document.getElementById('insight-text');
+                        
+                        if (d.insight_wasted_baht > 0.5) { // โชว์ก็ต่อเมื่อเสียเงินฟรีๆ ไปแล้วมากกว่า 0.5 บาท
+                            insightBanner.style.display = 'flex';
+                            insightText.innerHTML = `ตรวจพบการเปิดเครื่องทิ้งไว้โดยไม่ใช้งาน <b>${d.insight_idle_mins} นาที</b><br>สูญเสียค่าไฟไปแล้วประมาณ <b style="color:var(--red);">฿${d.insight_wasted_baht.toFixed(2)}</b><br><span style="color:var(--text-sub); font-size:11px;">📌 คำแนะนำ: หากไม่ได้ใช้งานต่อ กรุณาสั่ง Sleep หรือปิดเครื่องเพื่อประหยัดพลังงาน</span>`;
+                        } else {
+                            insightBanner.style.display = 'none';
+                        }
+
+                        // Battery (แสดงเฉพาะเมื่อ != 100% หรือไม่ได้เสียบปลั๊ก)
+                        const batPct = d.Battery_Percent;
+                        if (batPct != null && batPct < 100) {
+                            const batCard = document.getElementById('battery-card');
+                            batCard.style.display = 'block';
+                            document.getElementById('val-battery').innerText = batPct + '%';
+                            document.getElementById('hw-battery-status').innerText = d.Is_Plugged ? '🔌 กำลังชาร์จ' : '🔋 ใช้แบตเตอรี่';
+                            const bar = document.getElementById('bar-battery');
+                            bar.style.width = batPct + '%';
+                            bar.style.background = batPct < 20 ? 'var(--red)' : batPct < 50 ? 'var(--yellow)' : 'var(--primary)';
+                        }
+
+                        // ⏳ อัปเดตตัวเลขเวลานับถอยหลัง
+                        if (d.Timer_Left_Secs != null && d.Timer_Left_Secs > 0) {
+                            document.getElementById('timer-display').style.display = 'block';
+                            let m = Math.floor(d.Timer_Left_Secs / 60);
+                            let s = d.Timer_Left_Secs % 60;
+                            document.getElementById('timer-countdown').innerText = 
+                                `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                        } else {
+                            document.getElementById('timer-display').style.display = 'none';
+                        }
+
+                        if(d.Top_Apps && d.Top_Apps.length > 0) {
+                            let appsHtml = "";
+                            d.Top_Apps.forEach(app => {
+                                const killTarget = encodeURIComponent(app.name);
+                                appsHtml += `
+                                <div class="top-app-item">
+                                    <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">terminal</span> ${app.name}</div>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <div class="top-app-cpu">${app.cpu}%</div>
+                                        <button class="kill-btn" title="Force Close ${app.name}" onclick="killProcess('${app.name}')">
+                                            <span class="material-symbols-rounded">close</span>
+                                        </button>
+                                    </div>
+                                </div>`;
+                            });
+                            document.getElementById('top-apps-container').innerHTML = appsHtml;
+                        } else {
+                            document.getElementById('top-apps-container').innerHTML = '<div style="font-size: 12px; color: var(--text-sub); text-align: center;">ไม่มีโปรแกรมสูบแบตในขณะนี้</div>';
+                        }
+
+                        offlineTimer = setTimeout(() => {
+                            document.getElementById('status-text').innerText = "• ออฟไลน์ (ปิดเครื่อง/โปรแกรมหยุดทำงาน)";
+                            document.getElementById('status-text').style.color = "var(--red)";
+                            document.getElementById('status-dot').style.background = "var(--red)";
+                            document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--red)";
+                        }, 15000);
                     }
                 });
 
                 onValue(ref(db, `users/${user.uid}/hardware_info`), (snap) => {
                     if(snap.val()) {
-                        document.getElementById('hw-cpu-name').innerText = snap.val().cpu_model;
-                        document.getElementById('hw-cpu-cores').innerText = `GPU: ${snap.val().gpu_model}`;
-                        document.getElementById('pc-name-display').innerText = snap.val().os + " PC";
+                        const hw = snap.val();
+                        document.getElementById('hw-cpu-name').innerText = hw.cpu_model || '–';
+                        document.getElementById('hw-cpu-cores').innerText = `GPU: ${hw.gpu_model || '–'} | จอ ${hw.monitor_count || 1} จอ`;
+                        document.getElementById('pc-name-display').innerText = (hw.os || 'Windows') + " PC";
                     }
                 });
 
-                onValue(query(ref(db, `users/${user.uid}/history_logs`), limitToLast(30)), (snap) => {
-                    const logs = snap.val();
-                    if(logs) {
-                        let labels=[], cpu=[], gpu=[], ram=[], watt=[];
-                        let sumCpu=0, sumGpu=0, sumRam=0, count=0;
-                        
-                        Object.values(logs).forEach(log => {
-                            labels.push(log.timestamp.split(' ')[1].substring(0,5));
-                            cpu.push(log.cpu); gpu.push(log.gpu); ram.push(log.ram);
-                            watt.push(log.watt || 0); 
-                            sumCpu+=log.cpu; sumGpu+=log.gpu; sumRam+=log.ram; count++;
-                        });
-                        
-                        document.getElementById('avg-cpu').innerText = Math.round(sumCpu/count) + "%";
-                        document.getElementById('avg-gpu').innerText = Math.round(sumGpu/count) + "%";
-                        document.getElementById('avg-ram').innerText = Math.round(sumRam/count) + "%";
-                        
-                        updateCharts(labels, cpu, gpu, ram, watt);
+                // =====================================================
+                // 🎯 Feature 1: Remote Task Killer — รับ kill_result
+                // =====================================================
+                window.killProcess = (processName) => {
+                    const uid = auth.currentUser?.uid;
+                    if (!uid) return;
+                    if (!confirm(`Force Close "${processName}" เลยไหมครับ?\n(โปรแกรมจะถูกปิดทันทีโดยไม่บันทึก)`)) return;
+                    set(ref(db, `users/${uid}/PC_Control/command`), `kill:${processName}`)
+                        .then(() => showKillToast(`⏳ กำลังปิด ${processName}...`, 'var(--yellow)'));
+                };
+
+                function showKillToast(msg, color = 'var(--primary)') {
+                    const t = document.getElementById('kill-toast');
+                    t.innerText = msg;
+                    t.style.borderColor = color;
+                    t.style.color = color;
+                    t.classList.add('show');
+                    clearTimeout(window._killToastTimer);
+                    window._killToastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+                }
+
+                onValue(ref(db, `users/${user.uid}/PC_Control/kill_result`), (snap) => {
+                    const r = snap.val();
+                    if (!r || !r.status) return;
+                    if (r.status === 'killed') {
+                        showKillToast(`✅ ปิด "${r.target}" สำเร็จแล้ว!`, 'var(--primary)');
+                    } else {
+                        showKillToast(`❌ ปิด "${r.target}" ไม่สำเร็จ`, 'var(--red)');
                     }
+                });
+
+                // =====================================================
+                // 🎯 Feature 2: Gaming Mode — ติดตาม gaming_mode node
+                // =====================================================
+                let _lastGameEndKey = '';  // BUG FIX: ป้องกัน toast ซ้ำตอนโหลดหน้า
+
+                onValue(ref(db, `users/${user.uid}/gaming_mode`), (snap) => {
+                    const g = snap.val();
+                    const banner  = document.getElementById('gaming-banner');
+                    const wattEl  = document.getElementById('gaming-watt');
+
+                    if (g && g.active) {
+                        document.body.classList.add('gaming-active');
+                        banner.classList.add('active');
+                        document.getElementById('gaming-game-name').innerText = g.game || 'Unknown Game';
+                        document.getElementById('gaming-mins').innerText      = g.session_mins != null ? g.session_mins : '0';
+                        document.getElementById('gaming-cost').innerText      = g.cost_thb    != null ? Number(g.cost_thb).toFixed(2) : '0.00';
+                        const wattNow = document.getElementById('val-watt').innerText;
+                        if (wattEl) wattEl.innerText = wattNow;
+                        _lastGameEndKey = '';  // รีเซ็ตเมื่อเริ่มเกมใหม่
+                    } else {
+                        document.body.classList.remove('gaming-active');
+                        banner.classList.remove('active');
+                        // BUG FIX: ป้องกัน toast ซ้ำ — ใช้ last_game+last_mins เป็น key
+                        if (g && !g.active && g.last_game) {
+                            const endKey = `${g.last_game}_${g.last_mins}`;
+                            if (endKey !== _lastGameEndKey) {
+                                _lastGameEndKey = endKey;
+                                showAlertToast(
+                                    'cost', '🎮',
+                                    `จบเกม: ${g.last_game}`,
+                                    `เล่น ${g.last_mins} นาที — ค่าไฟที่สูบ ฿${Number(g.last_cost_thb).toFixed(2)}`
+                                );
+                            }
+                        }
+                    }
+                });
+
+                // =====================================================
+                // 🎯 Feature 3: Smart Alerts — แสดง toast เมื่อ Python เขียนเตือน
+                // =====================================================
+                let _lastAlertCpuTime = '', _lastAlertCostTime = '';
+
+                function showAlertToast(type, icon, title, body) {
+                    const container = document.getElementById('alert-container');
+                    const div = document.createElement('div');
+                    div.className = `alert-toast ${type}`;
+                    div.innerHTML = `
+                        <div class="alert-toast-icon">${icon}</div>
+                        <div style="flex:1;">
+                            <div class="alert-toast-title" style="color:${type==='cpu'?'var(--red)':'var(--yellow)'};">${title}</div>
+                            <div class="alert-toast-body">${body}</div>
+                        </div>
+                        <button class="alert-close" onclick="this.parentElement.remove()">✕</button>`;
+                    container.prepend(div);
+                    setTimeout(() => div.remove(), 12000);
+                }
+
+                onValue(ref(db, `users/${user.uid}/alerts/cpu_temp`), (snap) => {
+                    const a = snap.val();
+                    if (!a || !a.time) return;
+                    if (a.time === _lastAlertCpuTime) return;
+                    _lastAlertCpuTime = a.time;
+                    showAlertToast('cpu', '🔥',
+                        `CPU ร้อนจัด! ${a.value}°C`,
+                        `เกินขีด ${a.threshold}°C — ตรวจพัดลม/thermal paste ด่วน!\nเวลา ${a.time}`
+                    );
+                });
+
+                onValue(ref(db, `users/${user.uid}/alerts/daily_cost`), (snap) => {
+                    const a = snap.val();
+                    if (!a || !a.time) return;
+                    if (a.time === _lastAlertCostTime) return;
+                    _lastAlertCostTime = a.time;
+                    showAlertToast('cost', '💸',
+                        `ค่าไฟวันนี้ ฿${a.value} — เกินเป้าแล้ว!`,
+                        `เป้าที่ตั้งไว้: ฿${a.threshold} — ลองปิดโปรแกรมหนักๆ ดูครับ\nเวลา ${a.time}`
+                    );
+                });
+
+                // 🌟 ระบบดึงประวัติตามวันที่เลือก (Time Machine)
+                let historyUnsubscribe = null; 
+
+                function fetchHistoryByDate(dateStr) {
+                    if (historyUnsubscribe) historyUnsubscribe(); 
+
+                    const startOfDay = dateStr + " 00:00:00";
+                    const endOfDay = dateStr + " 23:59:59";
+                    
+                    const historyQuery = query(
+                        ref(db, `users/${user.uid}/history_logs`),
+                        orderByChild("timestamp"),
+                        startAt(startOfDay),
+                        endAt(endOfDay)
+                    );
+
+                    historyUnsubscribe = onValue(historyQuery, (snap) => {
+                        const logs = snap.val();
+                        if(logs) {
+                            let labels=[], cpu=[], gpu=[], ram=[], watt=[], netDl=[], netUl=[], cpuTemp=[], gpuTemp=[];
+                            let sumCpu=0, sumGpu=0, sumRam=0, count=0;
+                            let appUsage = {}; 
+
+                            Object.values(logs).forEach(log => {
+                                labels.push(log.timestamp.split(' ')[1].substring(0,5));
+                                cpu.push(log.cpu); gpu.push(log.gpu); ram.push(log.ram);
+                                watt.push(log.watt || 0); 
+                                cpuTemp.push(log.cpu_temp || 0);
+                                gpuTemp.push(log.gpu_temp || 0);
+                                netDl.push(log.net_dl || 0); netUl.push(log.net_ul || 0);
+                                sumCpu+=log.cpu; sumGpu+=log.gpu; sumRam+=log.ram; count++;
+
+                                if(log.top_apps) {
+                                    log.top_apps.forEach(app => {
+                                        if(!appUsage[app.name]) appUsage[app.name] = { count: 0, total_cpu: 0 };
+                                        appUsage[app.name].count += 1;
+                                        appUsage[app.name].total_cpu += app.cpu; 
+                                    });
+                                }
+                            });
+                            
+                            document.getElementById('avg-cpu').innerText = Math.round(sumCpu/count) + "%";
+                            document.getElementById('avg-gpu').innerText = Math.round(sumGpu/count) + "%";
+                            document.getElementById('avg-ram').innerText = Math.round(sumRam/count) + "%";
+                            
+                            updateCharts(labels, cpu, gpu, ram, watt, netDl, netUl, cpuTemp, gpuTemp);
+
+                            let sortedApps = Object.keys(appUsage).map(name => {
+                                return {
+                                    name: name,
+                                    avg_cpu: (appUsage[name].total_cpu / appUsage[name].count).toFixed(1),
+                                    score: appUsage[name].total_cpu 
+                                };
+                            }).sort((a, b) => b.score - a.score).slice(0, 5); 
+
+                            let appsHtml = "";
+                            sortedApps.forEach(app => {
+                                appsHtml += `
+                                <div class="top-app-item">
+                                    <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">apps</span> ${app.name}</div>
+                                    <div class="top-app-cpu">รันเฉลี่ย ${app.avg_cpu}%</div>
+                                </div>`;
+                            });
+                            document.getElementById('history-apps-container').innerHTML = appsHtml;
+                        } else {
+                            // กรณีไม่มีประวัติในวันที่เลือก
+                            document.getElementById('avg-cpu').innerText = "0%";
+                            document.getElementById('avg-gpu').innerText = "0%";
+                            document.getElementById('avg-ram').innerText = "0%";
+                            document.getElementById('history-apps-container').innerHTML = '<div style="font-size: 12px; color: var(--text-sub); text-align: center;">ไม่มีการบันทึกประวัติในวันที่เลือก</div>';
+                            updateCharts([], [], [], [], [], [], [], [], []); 
+                        }
+                    });
+                }
+
+                // 🌟 ตั้งค่าเริ่มต้นให้ปฏิทินเป็น "วันนี้"
+                const todayNow = new Date();
+                const todayStrFormat = `${todayNow.getFullYear()}-${String(todayNow.getMonth() + 1).padStart(2, '0')}-${String(todayNow.getDate()).padStart(2, '0')}`;
+                const datePicker = document.getElementById('history-date-picker');
+                datePicker.value = todayStrFormat;
+
+                fetchHistoryByDate(todayStrFormat);
+
+                datePicker.addEventListener('change', (e) => {
+                    fetchHistoryByDate(e.target.value);
                 });
 
                 function calculateCost() {
                     if (!globalSessions) return;
-                    let totalMinsToday = 0, totalMinsMonth = 0;
-                    let costToday = 0, costMonth = 0;
-                    let latestAvgWatt = 0;
-
+                    let totalMinsToday = 0, totalMinsMonth = 0, costToday = 0, costMonth = 0, latestAvgWatt = 0;
                     const now = new Date();
-                    const year = now.getFullYear();
-                    const month = String(now.getMonth() + 1).padStart(2, '0');
-                    const day = String(now.getDate()).padStart(2, '0');
-
-                    const todayStr = `${year}-${month}-${day}`; 
-                    const currentMonthStr = `${year}-${month}`; 
+                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; 
+                    const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; 
 
                     Object.values(globalSessions).forEach(session => {
                         if (session.start_time) {
                             const mins = session.session_mins || 0;
-                            const avgWatt = session.avg_watt || 0; 
-                            latestAvgWatt = avgWatt; 
+                            latestAvgWatt = session.avg_watt || 0; 
+                            const sessionCost = ((latestAvgWatt * (mins / 60)) / 1000) * unitPrice;
 
-                            const sessionCost = ((avgWatt * (mins / 60)) / 1000) * unitPrice;
-
-                            if (session.start_time.startsWith(todayStr)) {
-                                totalMinsToday += mins; costToday += sessionCost;
-                            }
-                            if (session.start_time.startsWith(currentMonthStr)) {
-                                totalMinsMonth += mins; costMonth += sessionCost;
-                            }
+                            if (session.start_time.startsWith(todayStr)) { totalMinsToday += mins; costToday += sessionCost; }
+                            if (session.start_time.startsWith(currentMonthStr)) { totalMinsMonth += mins; costMonth += sessionCost; }
                         }
                     });
 
@@ -472,7 +1040,6 @@
                     document.getElementById('timeMonthVal').innerText = totalMinsMonth;
                     document.getElementById('costTodayVal').innerText = costToday.toFixed(2);
                     document.getElementById('costMonthVal').innerText = costMonth.toFixed(2);
-
                     document.getElementById('hw-avg-watt').innerText = `เฉลี่ยของรอบนี้ ${latestAvgWatt} W`;
                     document.getElementById('bar-watt').style.width = Math.min((latestAvgWatt/500)*100, 100) + "%";
                 }
@@ -484,40 +1051,333 @@
             }
         });
 
-        function updateCharts(labels, cpu, gpu, ram, watt) {
+        // =====================================================
+        // 🎮 Gaming Log — daily_game_log / monthly_game_log
+        // =====================================================
+        window.showGamingTab = (mode) => {
+            const isDaily = mode === 'daily';
+            document.getElementById('toggle-daily').classList.toggle('active', isDaily);
+            document.getElementById('toggle-monthly').classList.toggle('active', !isDaily);
+            document.getElementById('gaming-date-row').style.display = isDaily ? 'flex' : 'none';
+            document.getElementById('gaming-monthly-days').style.display = isDaily ? 'none' : 'block';
+            document.getElementById('gaming-summary-label').innerText = isDaily ? 'รวมวันนี้' : 'รวมเดือนนี้';
+            if (isDaily) {
+                loadDailyGameLog(document.getElementById('gaming-date-picker').value);
+            } else {
+                loadMonthlyGameLog();
+            }
+        };
+
+        function renderGamesList(games, containerEl) {
+            if (!games || Object.keys(games).length === 0) {
+                containerEl.innerHTML = '<div id="gaming-log-empty">ไม่มีข้อมูลเกมในช่วงนี้</div>';
+                return;
+            }
+            const sorted = Object.values(games).sort((a,b) => b.total_mins - a.total_mins);
+            let html = '';
+            sorted.forEach(g => {
+                const hrs = Math.floor(g.total_mins / 60);
+                const mins = Math.round(g.total_mins % 60);
+                const timeStr = hrs > 0 ? `${hrs} ชม. ${mins} นาที` : `${mins} นาที`;
+                html += `<div class="game-log-card">
+                    <div class="game-log-title">
+                        <span>🎮 ${g.name || g}</span>
+                        <span class="game-log-mins">${timeStr}</span>
+                    </div>
+                    <div class="game-log-sub">ค่าไฟ ฿${Number(g.total_cost_thb || 0).toFixed(4)}</div>`;
+                // Sessions (รายวันเท่านั้น)
+                if (g.sessions && g.sessions.length > 0) {
+                    g.sessions.forEach(s => {
+                        html += `<div class="game-row">
+                            <div class="game-row-name"><span class="material-symbols-rounded" style="font-size:14px;">schedule</span> ${s.start} – ${s.end}</div>
+                            <div class="game-row-mins">${s.mins} นาที</div>
+                        </div>`;
+                    });
+                }
+                html += '</div>';
+            });
+            containerEl.innerHTML = html;
+        }
+
+        function loadDailyGameLog(dateStr) {
+            const uid = auth.currentUser?.uid;
+            if (!uid || !dateStr) return;
+            document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">กำลังโหลด...</div>';
+            get(ref(db, `users/${uid}/daily_game_log/${dateStr}`)).then(snap => {
+                const data = snap.val();
+                if (data) {
+                    document.getElementById('gaming-total-mins').innerText = data.total_mins || 0;
+                    document.getElementById('gaming-total-cost').innerText = Number(data.total_cost_thb || 0).toFixed(2);
+                    renderGamesList(data.games, document.getElementById('gaming-games-list'));
+                } else {
+                    document.getElementById('gaming-total-mins').innerText = 0;
+                    document.getElementById('gaming-total-cost').innerText = '0.00';
+                    document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">ไม่มีข้อมูลเกมในวันนี้</div>';
+                }
+            }).catch(() => {
+                document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">โหลดข้อมูลไม่สำเร็จ</div>';
+            });
+        }
+
+        function loadMonthlyGameLog() {
+            const uid = auth.currentUser?.uid;
+            if (!uid) return;
+            const now = new Date();
+            const monthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+            document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">กำลังโหลด...</div>';
+            document.getElementById('gaming-days-list').innerHTML = '';
+
+            get(ref(db, `users/${uid}/monthly_game_log/${monthStr}`)).then(snap => {
+                const data = snap.val();
+                if (data) {
+                    document.getElementById('gaming-total-mins').innerText = data.total_mins || 0;
+                    document.getElementById('gaming-total-cost').innerText = Number(data.total_cost_thb || 0).toFixed(2);
+                    renderGamesList(data.games, document.getElementById('gaming-games-list'));
+                } else {
+                    document.getElementById('gaming-total-mins').innerText = 0;
+                    document.getElementById('gaming-total-cost').innerText = '0.00';
+                    document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">ยังไม่มีข้อมูลเกมเดือนนี้</div>';
+                }
+            });
+
+            // แสดง daily breakdown ของเดือนนี้
+            get(ref(db, `users/${uid}/daily_game_log`)).then(snap => {
+                const allDays = snap.val();
+                if (!allDays) return;
+                const daysInMonth = Object.keys(allDays).filter(d => d.startsWith(monthStr)).sort().reverse();
+                let daysHtml = '';
+                daysInMonth.forEach(d => {
+                    const day = allDays[d];
+                    const hrs = Math.floor(day.total_mins / 60);
+                    const mins = Math.round(day.total_mins % 60);
+                    const timeStr = hrs > 0 ? `${hrs} ชม. ${mins} นาที` : `${mins} นาที`;
+                    const gameNames = Object.values(day.games || {}).map(g => g.name || g).join(', ');
+                    daysHtml += `<div class="game-row">
+                        <div class="game-row-name"><span class="material-symbols-rounded" style="font-size:14px;">calendar_today</span> ${d}</div>
+                        <div style="text-align:right;">
+                            <div class="game-row-mins">${timeStr}</div>
+                            <div style="font-size:10px; color:var(--text-sub);">${gameNames}</div>
+                        </div>
+                    </div>`;
+                });
+                if (daysHtml) {
+                    document.getElementById('gaming-days-list').innerHTML = `<div class="card" style="padding:14px;">${daysHtml}</div>`;
+                }
+            });
+        }
+
+        // =====================================================
+        // 📊 Monthly Summary + Yearly Summary
+        // =====================================================
+        function initYearSelect() {
+            const sel = document.getElementById('year-select');
+            const thisYear = new Date().getFullYear();
+            sel.innerHTML = '';
+            for (let y = thisYear; y >= thisYear - 3; y--) {
+                const opt = document.createElement('option');
+                opt.value = y; opt.text = y + ' ปี';
+                if (y === thisYear) opt.selected = true;
+                sel.appendChild(opt);
+            }
+            sel.addEventListener('change', () => loadYearlySummary(parseInt(sel.value)));
+        }
+
+        function loadYearlySummary(year) {
+            const uid = auth.currentUser?.uid;
+            if (!uid) return;
+            document.getElementById('year-label').innerText = year;
+            document.getElementById('summary-loading').style.display = 'block';
+            document.getElementById('monthly-summary-list').innerHTML = '';
+            document.getElementById('year-total-bar').style.display = 'none';
+
+            get(ref(db, `users/${uid}/monthly_summary`)).then(snap => {
+                document.getElementById('summary-loading').style.display = 'none';
+                const allMonths = snap.val();
+                if (!allMonths) {
+                    document.getElementById('monthly-summary-list').innerHTML =
+                        '<div style="text-align:center;padding:30px;color:var(--text-sub);font-size:13px;">ยังไม่มีข้อมูลสรุปรายเดือน<br><small>ข้อมูลจะเริ่มสะสมหลังโปรแกรม Python รันครบ 1 ชม.</small></div>';
+                    return;
+                }
+                const months = Object.entries(allMonths)
+                    .filter(([k]) => k.startsWith(String(year)))
+                    .sort((a,b) => b[0].localeCompare(a[0]));
+
+                if (months.length === 0) {
+                    document.getElementById('monthly-summary-list').innerHTML =
+                        `<div style="text-align:center;padding:30px;color:var(--text-sub);font-size:13px;">ไม่มีข้อมูลปี ${year}</div>`;
+                    return;
+                }
+
+                // คำนวณรวมทั้งปี
+                let yrHrs=0, yrCost=0, yrKwh=0, yrGame=0, yrCpuSum=0, yrRamSum=0;
+                let html = '';
+                months.forEach(([monthKey, m]) => {
+                    yrHrs  += m.total_session_hrs || 0;
+                    yrCost += m.total_cost_thb    || 0;
+                    yrKwh  += m.total_kwh         || 0;
+                    yrGame += m.game_hrs           || 0;
+                    yrCpuSum += m.avg_cpu          || 0;
+                    yrRamSum += m.avg_ram          || 0;
+
+                    const topApps = Object.entries(m.top_apps_count || {})
+                        .sort((a,b)=>b[1]-a[1]).slice(0,5)
+                        .map(([name]) => `<span class="ym-app-chip">${name.replace('.exe','')}</span>`).join('');
+
+                    const monthName = new Date(monthKey+'-01').toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+                    html += `<div class="year-month-card">
+                        <div class="ym-header">
+                            <div class="ym-month">📅 ${monthName}</div>
+                            <div class="ym-cost">฿${Number(m.total_cost_thb||0).toFixed(2)}</div>
+                        </div>
+                        <div class="ym-stats-grid">
+                            <div class="ym-stat">
+                                <div class="ym-stat-val" style="color:var(--primary);">${m.total_session_hrs||0}<small style="font-size:11px;"> ชม.</small></div>
+                                <div class="ym-stat-label">ใช้งาน</div>
+                            </div>
+                            <div class="ym-stat">
+                                <div class="ym-stat-val" style="color:var(--red);">${m.game_hrs||0}<small style="font-size:11px;"> ชม.</small></div>
+                                <div class="ym-stat-label">เล่นเกม</div>
+                            </div>
+                            <div class="ym-stat">
+                                <div class="ym-stat-val" style="color:var(--yellow);">${m.total_kwh||0}<small style="font-size:11px;"> kWh</small></div>
+                                <div class="ym-stat-label">พลังงาน</div>
+                            </div>
+                            <div class="ym-stat">
+                                <div class="ym-stat-val" style="color:var(--blue);">${m.avg_cpu||0}<small style="font-size:11px;">%</small></div>
+                                <div class="ym-stat-label">avg CPU</div>
+                            </div>
+                            <div class="ym-stat">
+                                <div class="ym-stat-val" style="color:var(--yellow);">${m.avg_ram||0}<small style="font-size:11px;">%</small></div>
+                                <div class="ym-stat-label">avg RAM</div>
+                            </div>
+                            <div class="ym-stat">
+                                <div class="ym-stat-val" style="color:var(--purple);">${m.avg_watt||0}<small style="font-size:11px;">W</small></div>
+                                <div class="ym-stat-label">avg Watt</div>
+                            </div>
+                        </div>
+                        ${topApps ? `<div class="ym-apps">${topApps}</div>` : ''}
+                    </div>`;
+                });
+
+                document.getElementById('monthly-summary-list').innerHTML = html;
+
+                // แสดง year total
+                const n = months.length;
+                document.getElementById('yr-total-hrs').innerText  = yrHrs.toFixed(1) + ' ชม.';
+                document.getElementById('yr-total-cost').innerText = '฿' + yrCost.toFixed(2);
+                document.getElementById('yr-total-kwh').innerText  = yrKwh.toFixed(2) + ' kWh';
+                document.getElementById('yr-total-game').innerText = yrGame.toFixed(1) + ' ชม.';
+                document.getElementById('yr-avg-cpu').innerText    = (yrCpuSum/n).toFixed(1) + '%';
+                document.getElementById('yr-avg-ram').innerText    = (yrRamSum/n).toFixed(1) + '%';
+                document.getElementById('year-total-bar').style.display = 'block';
+            }).catch(() => {
+                document.getElementById('summary-loading').style.display = 'none';
+                document.getElementById('monthly-summary-list').innerHTML =
+                    '<div style="text-align:center;padding:20px;color:var(--red);">โหลดข้อมูลไม่สำเร็จ</div>';
+            });
+        }
+
+        // init gaming tab date picker
+        const gamingDatePicker = document.getElementById('gaming-date-picker');
+        if (gamingDatePicker) {
+            const todayD = new Date();
+            const todayDS = `${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`;
+            gamingDatePicker.value = todayDS;
+            gamingDatePicker.addEventListener('change', (e) => {
+                if (document.getElementById('toggle-daily').classList.contains('active')) {
+                    loadDailyGameLog(e.target.value);
+                }
+            });
+        }
+
+        // โหลดอัตโนมัติเมื่อ switch ไป tab history (รวมสถิติเกมไว้แล้ว)
+        let _yearlyLoaded = false;
+        const origSwitchTab = window.switchTab;
+        window.switchTab = (tabId, element) => {
+            origSwitchTab(tabId, element);
+            if (tabId === 'history') {
+                const isDaily = document.getElementById('toggle-daily').classList.contains('active');
+                if (isDaily) loadDailyGameLog(document.getElementById('gaming-date-picker').value);
+                else loadMonthlyGameLog();
+                // โหลด yearly summary ครั้งแรก
+                if (!_yearlyLoaded) {
+                    _yearlyLoaded = true;
+                    initYearSelect();
+                    loadYearlySummary(new Date().getFullYear());
+                }
+            }
+        };
+
+        function updateCharts(labels, cpu, gpu, ram, watt, netDl, netUl, cpuTemp, gpuTemp) {
             Chart.defaults.color = '#a4b0be';
             Chart.defaults.font.family = 'Prompt';
 
             const ctxCpu = document.getElementById('chart-cpu').getContext('2d');
             if(chartCpu) chartCpu.destroy();
             chartCpu = new Chart(ctxCpu, {
-                type: 'line',
-                data: { labels: labels, datasets: [{ label: 'CPU %', data: cpu, borderColor: '#20c997', backgroundColor: 'rgba(32, 201, 151, 0.2)', fill: true, tension: 0.4 }] },
+                type: 'line', data: { labels: labels, datasets: [{ label: 'CPU %', data: cpu, borderColor: '#20c997', backgroundColor: 'rgba(32, 201, 151, 0.2)', fill: true, tension: 0.4 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: {display: false} } }
             });
 
             const ctxRam = document.getElementById('chart-ram').getContext('2d');
             if(chartRam) chartRam.destroy();
             chartRam = new Chart(ctxRam, {
-                type: 'line',
-                data: { labels: labels, datasets: [
-                    { label: 'GPU %', data: gpu, borderColor: '#3498db', tension: 0.4 },
-                    { label: 'RAM %', data: ram, borderColor: '#f1c40f', tension: 0.4 }
-                ]},
+                type: 'line', data: { labels: labels, datasets: [ { label: 'GPU %', data: gpu, borderColor: '#3498db', tension: 0.4 }, { label: 'RAM %', data: ram, borderColor: '#f1c40f', tension: 0.4 } ]},
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { position: 'bottom'} } }
             });
 
-            const ctxWattContainer = document.getElementById('chart-watt');
-            if (ctxWattContainer) {
-                const ctxWatt = ctxWattContainer.getContext('2d');
-                if(chartWatt) chartWatt.destroy();
-                chartWatt = new Chart(ctxWatt, {
-                    type: 'line',
-                    data: { labels: labels, datasets: [{ label: 'พลังงาน (Watt)', data: watt, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.2)', fill: true, tension: 0.4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
-                });
-            }
+            const ctxWatt = document.getElementById('chart-watt').getContext('2d');
+            if(chartWatt) chartWatt.destroy();
+            chartWatt = new Chart(ctxWatt, {
+                type: 'line', data: { labels: labels, datasets: [{ label: 'พลังงาน (Watt)', data: watt, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.2)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+
+            const ctxTemp = document.getElementById('chart-temp').getContext('2d');
+            if(chartTemp) chartTemp.destroy();
+            chartTemp = new Chart(ctxTemp, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'CPU °C', data: cpuTemp || [], borderColor: '#e74c3c', backgroundColor: 'rgba(231,76,60,0.15)', fill: true, tension: 0.4 },
+                        { label: 'GPU °C', data: gpuTemp || [], borderColor: '#9b59b6', backgroundColor: 'rgba(155,89,182,0.10)', fill: true, tension: 0.4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false, suggestedMin: 30, suggestedMax: 100,
+                        ticks: { callback: v => v + '°C' } } },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            const ctxNet = document.getElementById('chart-net').getContext('2d');
+            if(chartNet) chartNet.destroy();
+            chartNet = new Chart(ctxNet, {
+                type: 'line', data: { labels: labels, datasets: [
+                    { label: 'Download (Mbps)', data: netDl, borderColor: '#20c997', tension: 0.4 },
+                    { label: 'Upload (Mbps)', data: netUl, borderColor: '#9b59b6', tension: 0.4 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'bottom'} } }
+            });
         }
+
+        window.setTimer = () => {
+            const mins = document.getElementById('timer-mins').value;
+            const uid = auth.currentUser?.uid;
+            if(!uid || !mins || mins <= 0) return;
+            if(confirm(`ตั้งเวลาปิดเครื่องในอีก ${mins} นาที ใช่ไหม?`)) {
+                set(ref(db, `users/${uid}/PC_Control/command`), `timer:${mins}`);
+            }
+        };
+
+        window.cancelTimer = () => {
+            const uid = auth.currentUser?.uid;
+            if(!uid) return;
+            set(ref(db, `users/${uid}/PC_Control/command`), `timer:cancel`);
+        };
+
     </script>
 </body>
 </html>
