@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
     <style>
         :root {
             --bg-main: #1e212b; --bg-card: #282c37; --bg-nav: #ffffff;
@@ -319,6 +320,14 @@
             <p style="color: var(--text-sub); margin-bottom: 30px; font-size: 14px;">กรุณาเข้าสู่ระบบเพื่อควบคุมคอมพิวเตอร์</p>
             <button id="loginBtn" class="btn-login"><span class="material-symbols-rounded">login</span> เข้าสู่ระบบด้วย Google</button>
             <p style="font-size: 11px; color: #a4b0be; margin-top: 15px;">*เวอร์ชัน Premium</p>
+
+            <div style="margin-top: 24px; border-top: 1px solid #353b48; padding-top: 20px;">
+                <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 12px;">ยังไม่ได้ติดตั้งโปรแกรม?</p>
+                <button class="btn-download-main" onclick="openInstallModal()">
+                    <i class="fa-solid fa-download"></i>
+                    ดาวน์โหลด ReCharge Server
+                </button>
+            </div>
         </div>
     </div>
 
@@ -717,28 +726,28 @@
 
             <div class="dl-spec-grid">
                 <div class="dl-spec-card">
-                    <span class="dl-spec-icon">🪟</span>
+                    <span class="dl-spec-icon"><i class="fa-brands fa-windows" style="color:#3498db;"></i></span>
                     <div>
                         <div class="dl-spec-label">รองรับระบบ</div>
                         <div class="dl-spec-val">Windows 10/11</div>
                     </div>
                 </div>
                 <div class="dl-spec-card blue">
-                    <span class="dl-spec-icon">📦</span>
+                    <span class="dl-spec-icon"><i class="fa-solid fa-box-archive" style="color:var(--blue);"></i></span>
                     <div>
                         <div class="dl-spec-label">ไฟล์</div>
                         <div class="dl-spec-val">ReCharge_Server.zip</div>
                     </div>
                 </div>
                 <div class="dl-spec-card yellow">
-                    <span class="dl-spec-icon">⚙️</span>
+                    <span class="dl-spec-icon"><i class="fa-solid fa-gears" style="color:var(--yellow);"></i></span>
                     <div>
                         <div class="dl-spec-label">ทำงาน</div>
                         <div class="dl-spec-val">เบื้องหลัง (Silent)</div>
                     </div>
                 </div>
                 <div class="dl-spec-card purple">
-                    <span class="dl-spec-icon">☁️</span>
+                    <span class="dl-spec-icon"><i class="fa-solid fa-cloud" style="color:var(--purple);"></i></span>
                     <div>
                         <div class="dl-spec-label">Cloud</div>
                         <div class="dl-spec-val">Firebase Realtime</div>
@@ -786,45 +795,114 @@
             <div class="install-sheet-handle"></div>
             <div class="install-sheet-header">
                 <div>
-                    <div style="font-size: 11px; color: var(--primary); font-weight: 600; letter-spacing: 1px;">GUIDE</div>
-                    <div style="font-size: 17px; font-weight: 700;">วิธีติดตั้งและใช้งาน</div>
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600; letter-spacing: 1px;">RECHARGE SERVER</div>
+                    <div style="font-size: 17px; font-weight: 700;">ดาวน์โหลด & วิธีติดตั้ง</div>
                 </div>
-                <button class="install-close-btn" onclick="closeInstallModal()">✕</button>
+                <button class="install-close-btn" onclick="closeInstallModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
+
+            <!-- ปุ่มดาวน์โหลดหลัก -->
+            <div style="padding: 16px 20px 4px;">
+                <a class="btn-download-main" href="https://github.com/lololo256/recharge/raw/main/downloads/ReCharge_Server.zip" download style="border-radius: 12px;">
+                    <i class="fa-solid fa-cloud-arrow-down" style="font-size: 20px;"></i>
+                    ดาวน์โหลด ReCharge_Server.zip
+                </a>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+                    <div style="background:#353b48; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-brands fa-windows" style="color:#3498db; font-size:18px;"></i>
+                        <div>
+                            <div style="font-size:10px; color:var(--text-sub);">รองรับ</div>
+                            <div style="font-size:12px; font-weight:700;">Windows 10 / 11</div>
+                        </div>
+                    </div>
+                    <div style="background:#353b48; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-box-archive" style="color:var(--primary); font-size:18px;"></i>
+                        <div>
+                            <div style="font-size:10px; color:var(--text-sub);">รูปแบบไฟล์</div>
+                            <div style="font-size:12px; font-weight:700;">.zip → .exe</div>
+                        </div>
+                    </div>
+                    <div style="background:#353b48; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-gears" style="color:var(--yellow); font-size:18px;"></i>
+                        <div>
+                            <div style="font-size:10px; color:var(--text-sub);">การทำงาน</div>
+                            <div style="font-size:12px; font-weight:700;">เบื้องหลัง (Silent)</div>
+                        </div>
+                    </div>
+                    <div style="background:#353b48; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-cloud" style="color:var(--purple); font-size:18px;"></i>
+                        <div>
+                            <div style="font-size:10px; color:var(--text-sub);">Cloud</div>
+                            <div style="font-size:12px; font-weight:700;">Firebase Realtime</div>
+                        </div>
+                    </div>
+                    <div style="background:#353b48; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-rotate" style="color:var(--primary); font-size:18px;"></i>
+                        <div>
+                            <div style="font-size:10px; color:var(--text-sub);">Auto-Start</div>
+                            <div style="font-size:12px; font-weight:700;">เปิดเครื่องทำงานเอง</div>
+                        </div>
+                    </div>
+                    <div style="background:#353b48; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-shield-halved" style="color:#20c997; font-size:18px;"></i>
+                        <div>
+                            <div style="font-size:10px; color:var(--text-sub);">ความปลอดภัย</div>
+                            <div style="font-size:12px; font-weight:700;">ปลอดภัย 100%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 14px 20px 6px; font-size:11px; font-weight:700; color:var(--text-sub); letter-spacing:1px;">วิธีติดตั้ง</div>
+
             <div class="install-step" style="animation-delay:0.05s">
-                <div class="step-num">1</div>
+                <div class="step-num"><i class="fa-solid fa-file-zipper"></i></div>
                 <div>
                     <div class="step-title">แตกไฟล์ (Extract)</div>
-                    <div class="step-desc">แตกไฟล์ .zip ที่ดาวน์โหลดมาไปไว้ในโฟลเดอร์ที่ต้องการ เช่น ไดร์ฟ D: หรือ Documents</div>
-                    <div class="step-tip">💡 แนะนำ: ไม่ควรวางไว้บน Desktop เพื่อความเป็นระเบียบ</div>
+                    <div class="step-desc">แตกไฟล์ .zip ไปไว้ในโฟลเดอร์ที่ต้องการ เช่น ไดร์ฟ D: หรือ Documents</div>
+                    <div class="step-tip"><i class="fa-solid fa-lightbulb"></i> แนะนำ: ไม่ควรวางไว้บน Desktop เพื่อความเป็นระเบียบ</div>
                 </div>
             </div>
             <div class="install-step" style="animation-delay:0.1s">
-                <div class="step-num">2</div>
+                <div class="step-num"><i class="fa-solid fa-play"></i></div>
                 <div>
                     <div class="step-title">เปิดไฟล์ recharge_sender.exe</div>
                     <div class="step-desc">ดับเบิ้ลคลิกเปิดไฟล์ recharge_sender.exe ในโฟลเดอร์ที่แตกไว้</div>
-                    <div class="step-warning">⚠️ Windows อาจขึ้นหน้าต่างสีฟ้า → กด "More info" → แล้วกด "Run anyway" ได้เลย ปลอดภัย 100%</div>
+                    <div class="step-warning"><i class="fa-solid fa-triangle-exclamation"></i> Windows อาจขึ้นหน้าต่างสีฟ้า → กด "More info" → "Run anyway" ได้เลย ปลอดภัย 100%</div>
                 </div>
             </div>
             <div class="install-step" style="animation-delay:0.15s">
-                <div class="step-num">3</div>
+                <div class="step-num"><i class="fa-solid fa-key"></i></div>
                 <div>
                     <div class="step-title">กรอก UID ของคุณ</div>
-                    <div class="step-desc">จะมีหน้าต่างให้กรอก "รหัสเครื่อง (UID)" ให้นำ UID จากหน้าแอปของคุณมาวาง แล้วกด OK</div>
-                    <div class="step-tip">💡 UID หาได้จากหัวการ์ดในหน้าหลักของแอป (กดคัดลอกได้เลย)</div>
+                    <div class="step-desc">จะมีหน้าต่างให้กรอก "รหัสเครื่อง (UID)" ให้นำ UID จากหน้าแอปมาวาง แล้วกด OK</div>
+                    <div class="step-tip"><i class="fa-solid fa-lightbulb"></i> UID หาได้จากหัวการ์ดในหน้าหลัก กดคัดลอกได้เลย</div>
                 </div>
             </div>
             <div class="install-step" style="animation-delay:0.2s">
-                <div class="step-num" style="font-size:18px; background: linear-gradient(135deg,#f1c40f,#e67e22);">🎉</div>
+                <div class="step-num" style="background: linear-gradient(135deg,#20c997,#17a589);"><i class="fa-solid fa-check"></i></div>
                 <div>
                     <div class="step-title">เสร็จเรียบร้อย!</div>
-                    <div class="step-desc">หน้าต่างจะหายไปเอง — โปรแกรมฝังตัวทำงานอัตโนมัติเบื้องหลังแล้ว และจะเริ่มทำงานเองทุกครั้งที่เปิดคอมพิวเตอร์</div>
-                    <div class="step-tip">💡 หากต้องการหยุด: เปิด Task Manager (Ctrl+Shift+Esc) → หา recharge_sender.exe → End Task</div>
+                    <div class="step-desc">โปรแกรมฝังตัวทำงานเบื้องหลังอัตโนมัติ และจะเริ่มทำงานเองทุกครั้งที่เปิดเครื่อง</div>
+                    <div class="step-tip"><i class="fa-solid fa-circle-info"></i> หากต้องการหยุด: Task Manager (Ctrl+Shift+Esc) → หา recharge_sender.exe → End Task</div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function openInstallModal() {
+            document.getElementById('install-overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeInstallModal(e) {
+            if (e && e.target !== document.getElementById('install-overlay')) return;
+            document.getElementById('install-overlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    </script>
 
     <script type="module">
         // 🌟 อัปเกรดคำสั่ง Import ให้ดึงประวัติตามวันที่ได้
@@ -1590,15 +1668,8 @@
             set(ref(db, `users/${uid}/PC_Control/command`), `timer:cancel`);
         };
 
-        window.openInstallModal = () => {
-            document.getElementById('install-overlay').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        };
-        window.closeInstallModal = (e) => {
-            if (e && e.target !== document.getElementById('install-overlay')) return;
-            document.getElementById('install-overlay').classList.remove('show');
-            document.body.style.overflow = '';
-        };
+        window.openInstallModal = () => { };
+        window.closeInstallModal = (e) => { };
 
     </script>
 </body>
