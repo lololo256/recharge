@@ -1028,6 +1028,18 @@
                             document.getElementById('top-apps-container').innerHTML = '<div style="font-size: 12px; color: var(--text-sub); text-align: center;">ไม่มีโปรแกรมสูบแบตในขณะนี้</div>';
                         }
 
+                        // ─────────────────────────────────────────────────────────
+                        // 🆕 FIX #B: อ่านค่าไฟจาก Firebase โดยตรง (Python คำนวณแม่นกว่า)
+                        // เดิม: HTML คำนวณเองจาก sessions → ต่างจาก monthly_summary เพราะใช้ avg_watt ต่างกัน
+                        // ใหม่: Python สะสมทีละวินาทีแล้วส่งขึ้น Firebase → HTML แค่อ่านโชว์
+                        // ─────────────────────────────────────────────────────────
+                        if (d.Daily_Cost_THB != null) {
+                            document.getElementById('costTodayVal').innerText   = Number(d.Daily_Cost_THB).toFixed(2);
+                            document.getElementById('timeTodayVal').innerText   = Math.round(d.Daily_Use_Mins || 0);
+                            document.getElementById('costMonthVal').innerText   = Number(d.Monthly_Cost_THB || 0).toFixed(2);
+                            document.getElementById('timeMonthVal').innerText   = Math.round(d.Monthly_Use_Mins || 0);
+                        }
+
                         offlineTimer = setTimeout(() => {
                             document.getElementById('status-text').innerText = "• ออฟไลน์ (ปิดเครื่อง/โปรแกรมหยุดทำงาน)";
                             document.getElementById('status-text').style.color = "var(--red)";
@@ -1244,27 +1256,14 @@
                 });
 
                 function calculateCost() {
+                    // 🆕 FIX #B: ค่าไฟอ่านจาก Firebase โดยตรงแล้ว (อ่านใน onValue PC_Monitor)
+                    // ฟังก์ชันนี้ยังคงอยู่เพื่อ trigger จาก onValue(pc_setup) แต่ไม่ต้องทำอะไรแล้ว
+                    // (avg watt display ยังคงอัปเดตจาก session data ด้านล่าง)
                     if (!globalSessions) return;
-                    let totalMinsToday = 0, totalMinsMonth = 0, costToday = 0, costMonth = 0, latestAvgWatt = 0;
-                    const now = new Date();
-                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; 
-                    const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; 
-
+                    let latestAvgWatt = 0;
                     Object.values(globalSessions).forEach(session => {
-                        if (session.start_time) {
-                            const mins = session.session_mins || 0;
-                            latestAvgWatt = session.avg_watt || 0; 
-                            const sessionCost = ((latestAvgWatt * (mins / 60)) / 1000) * unitPrice;
-
-                            if (session.start_time.startsWith(todayStr)) { totalMinsToday += mins; costToday += sessionCost; }
-                            if (session.start_time.startsWith(currentMonthStr)) { totalMinsMonth += mins; costMonth += sessionCost; }
-                        }
+                        if (session.avg_watt) latestAvgWatt = session.avg_watt;
                     });
-
-                    document.getElementById('timeTodayVal').innerText = totalMinsToday;
-                    document.getElementById('timeMonthVal').innerText = totalMinsMonth;
-                    document.getElementById('costTodayVal').innerText = costToday.toFixed(2);
-                    document.getElementById('costMonthVal').innerText = costMonth.toFixed(2);
                     document.getElementById('hw-avg-watt').innerText = `เฉลี่ยของรอบนี้ ${latestAvgWatt} W`;
                     document.getElementById('bar-watt').style.width = Math.min((latestAvgWatt/500)*100, 100) + "%";
                 }
