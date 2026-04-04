@@ -209,6 +209,106 @@
         .nav-item.active { color: var(--primary); }
         .nav-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
         .nav-icon .material-symbols-rounded { font-size: 26px; }
+
+        /* ================= Download Tab ================= */
+        .download-hero {
+            background: linear-gradient(135deg, rgba(32,201,151,0.15), rgba(52,152,219,0.1));
+            border: 1px solid rgba(32,201,151,0.3);
+            border-radius: 20px; padding: 30px 20px;
+            text-align: center; margin-bottom: 20px;
+        }
+        .download-hero-icon {
+            font-size: 64px; margin-bottom: 10px;
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .btn-download-main {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: linear-gradient(135deg, var(--primary), #17a589);
+            color: #1e212b; border: none; border-radius: 14px;
+            padding: 16px 30px; font-size: 16px; font-weight: 700;
+            font-family: 'Prompt'; cursor: pointer; width: 100%;
+            box-shadow: 0 6px 20px rgba(32,201,151,0.4);
+            transition: transform 0.15s, box-shadow 0.15s;
+            text-decoration: none;
+        }
+        .btn-download-main:active { transform: scale(0.97); box-shadow: 0 3px 10px rgba(32,201,151,0.3); }
+        .info-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.4);
+            color: var(--blue); border-radius: 20px; padding: 8px 16px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: background 0.2s; margin-top: 12px;
+        }
+        .info-pill:hover { background: rgba(52,152,219,0.25); }
+        .dl-spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .dl-spec-card {
+            background: var(--bg-card); border-radius: 14px; padding: 15px;
+            display: flex; align-items: center; gap: 12px;
+            border-left: 3px solid var(--primary);
+        }
+        .dl-spec-card.blue { border-left-color: var(--blue); }
+        .dl-spec-card.yellow { border-left-color: var(--yellow); }
+        .dl-spec-card.purple { border-left-color: var(--purple); }
+        .dl-spec-icon { font-size: 26px; flex-shrink: 0; }
+        .dl-spec-label { font-size: 10px; color: var(--text-sub); }
+        .dl-spec-val { font-size: 13px; font-weight: 700; }
+
+        /* ================= Install Modal ================= */
+        .install-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            z-index: 10000; display: flex; align-items: flex-end;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        .install-overlay.show { opacity: 1; pointer-events: all; }
+        .install-sheet {
+            background: var(--bg-card); width: 100%; border-radius: 24px 24px 0 0;
+            padding: 0 0 40px 0; max-height: 85vh; overflow-y: auto;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .install-overlay.show .install-sheet { transform: translateY(0); }
+        .install-sheet-handle {
+            width: 36px; height: 4px; background: #555; border-radius: 2px;
+            margin: 12px auto 0;
+        }
+        .install-sheet-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid #353b48;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .install-close-btn {
+            background: #353b48; border: none; color: var(--text-main);
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+            font-size: 18px; display: flex; align-items: center; justify-content: center;
+        }
+        .install-step {
+            display: flex; gap: 14px; padding: 14px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            animation: fadeIn 0.3s ease both;
+        }
+        .install-step:last-child { border-bottom: none; }
+        .step-num {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #17a589);
+            color: #1e212b; font-weight: 700; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .step-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .step-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+        .step-warning {
+            background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3);
+            border-radius: 10px; padding: 8px 12px; margin-top: 8px;
+            font-size: 11px; color: var(--red); line-height: 1.5;
+        }
+        .step-tip {
+            background: rgba(32,201,151,0.1); border: 1px solid rgba(32,201,151,0.25);
+            border-radius: 10px; padding: 8px 12px; margin-top: 8px;
+            font-size: 11px; color: var(--primary); line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -594,6 +694,69 @@
 
             <button id="logoutBtn" class="btn-login" style="background: #353b48; margin-top: 20px;"><span class="material-symbols-rounded">logout</span> ออกจากระบบเว็บ</button>
         </div>
+
+        <!-- ===== Tab: Download ===== -->
+        <div id="tab-download" class="tab-content">
+            <div class="download-hero">
+                <div class="download-hero-icon">⚡</div>
+                <div style="font-size: 22px; font-weight: 700; margin-bottom: 6px;">ReCharge Server</div>
+                <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.6;">
+                    โปรแกรมเบื้องหลังสำหรับ Windows<br>ส่งข้อมูลสเปคและค่าไฟแบบเรียลไทม์
+                </div>
+                <a class="btn-download-main" href="https://github.com/lololo256/recharge/raw/main/downloads/ReCharge_Server.zip" download>
+                    <span class="material-symbols-rounded" style="font-size: 22px;">download</span>
+                    ดาวน์โหลด ReCharge Server
+                </a>
+                <div>
+                    <div class="info-pill" onclick="openInstallModal()">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">info</span>
+                        วิธีติดตั้งและใช้งาน
+                    </div>
+                </div>
+            </div>
+
+            <div class="dl-spec-grid">
+                <div class="dl-spec-card">
+                    <span class="dl-spec-icon">🪟</span>
+                    <div>
+                        <div class="dl-spec-label">รองรับระบบ</div>
+                        <div class="dl-spec-val">Windows 10/11</div>
+                    </div>
+                </div>
+                <div class="dl-spec-card blue">
+                    <span class="dl-spec-icon">📦</span>
+                    <div>
+                        <div class="dl-spec-label">ไฟล์</div>
+                        <div class="dl-spec-val">ReCharge_Server.zip</div>
+                    </div>
+                </div>
+                <div class="dl-spec-card yellow">
+                    <span class="dl-spec-icon">⚙️</span>
+                    <div>
+                        <div class="dl-spec-label">ทำงาน</div>
+                        <div class="dl-spec-val">เบื้องหลัง (Silent)</div>
+                    </div>
+                </div>
+                <div class="dl-spec-card purple">
+                    <span class="dl-spec-icon">☁️</span>
+                    <div>
+                        <div class="dl-spec-label">Cloud</div>
+                        <div class="dl-spec-val">Firebase Realtime</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border-left: 3px solid var(--yellow);">
+                <div class="section-title"><span class="material-symbols-rounded" style="color:var(--yellow);">school</span> พัฒนาโดย</div>
+                <div style="font-size: 13px; color: var(--text-sub); line-height: 1.7; margin-top: 8px;">
+                    นักศึกษาชั้นปีที่ 1 คณะวิศวกรรมคอมพิวเตอร์<br>
+                    <span style="color: var(--text-main); font-weight: 600;">มหาวิทยาลัยศรีปทุม (SPU)</span>
+                </div>
+                <div style="margin-top: 12px; font-size: 12px; color: var(--text-sub);">
+                    📫 <a href="mailto:phumiphatsuksai403@gmail.com" style="color: var(--primary); text-decoration: none;">phumiphatsuksai403@gmail.com</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="bottom-nav" id="bottom-nav" style="display: none;">
@@ -606,6 +769,9 @@
         <a class="nav-item" onclick="switchTab('settings', this)">
             <div class="nav-icon"><span class="material-symbols-rounded">settings</span></div><div>ตั้งค่า</div>
         </a>
+        <a class="nav-item" onclick="switchTab('download', this)">
+            <div class="nav-icon"><span class="material-symbols-rounded">download</span></div><div>ดาวน์โหลด</div>
+        </a>
     </div>
 
     <!-- Feature 3: Alert Toast Container -->
@@ -613,6 +779,52 @@
 
     <!-- Feature 1: Kill feedback toast -->
     <div class="kill-result-toast" id="kill-toast"></div>
+
+    <!-- ===== Install Instructions Modal ===== -->
+    <div class="install-overlay" id="install-overlay" onclick="closeInstallModal(event)">
+        <div class="install-sheet">
+            <div class="install-sheet-handle"></div>
+            <div class="install-sheet-header">
+                <div>
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600; letter-spacing: 1px;">GUIDE</div>
+                    <div style="font-size: 17px; font-weight: 700;">วิธีติดตั้งและใช้งาน</div>
+                </div>
+                <button class="install-close-btn" onclick="closeInstallModal()">✕</button>
+            </div>
+            <div class="install-step" style="animation-delay:0.05s">
+                <div class="step-num">1</div>
+                <div>
+                    <div class="step-title">แตกไฟล์ (Extract)</div>
+                    <div class="step-desc">แตกไฟล์ .zip ที่ดาวน์โหลดมาไปไว้ในโฟลเดอร์ที่ต้องการ เช่น ไดร์ฟ D: หรือ Documents</div>
+                    <div class="step-tip">💡 แนะนำ: ไม่ควรวางไว้บน Desktop เพื่อความเป็นระเบียบ</div>
+                </div>
+            </div>
+            <div class="install-step" style="animation-delay:0.1s">
+                <div class="step-num">2</div>
+                <div>
+                    <div class="step-title">เปิดไฟล์ recharge_sender.exe</div>
+                    <div class="step-desc">ดับเบิ้ลคลิกเปิดไฟล์ recharge_sender.exe ในโฟลเดอร์ที่แตกไว้</div>
+                    <div class="step-warning">⚠️ Windows อาจขึ้นหน้าต่างสีฟ้า → กด "More info" → แล้วกด "Run anyway" ได้เลย ปลอดภัย 100%</div>
+                </div>
+            </div>
+            <div class="install-step" style="animation-delay:0.15s">
+                <div class="step-num">3</div>
+                <div>
+                    <div class="step-title">กรอก UID ของคุณ</div>
+                    <div class="step-desc">จะมีหน้าต่างให้กรอก "รหัสเครื่อง (UID)" ให้นำ UID จากหน้าแอปของคุณมาวาง แล้วกด OK</div>
+                    <div class="step-tip">💡 UID หาได้จากหัวการ์ดในหน้าหลักของแอป (กดคัดลอกได้เลย)</div>
+                </div>
+            </div>
+            <div class="install-step" style="animation-delay:0.2s">
+                <div class="step-num" style="font-size:18px; background: linear-gradient(135deg,#f1c40f,#e67e22);">🎉</div>
+                <div>
+                    <div class="step-title">เสร็จเรียบร้อย!</div>
+                    <div class="step-desc">หน้าต่างจะหายไปเอง — โปรแกรมฝังตัวทำงานอัตโนมัติเบื้องหลังแล้ว และจะเริ่มทำงานเองทุกครั้งที่เปิดคอมพิวเตอร์</div>
+                    <div class="step-tip">💡 หากต้องการหยุด: เปิด Task Manager (Ctrl+Shift+Esc) → หา recharge_sender.exe → End Task</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         // 🌟 อัปเกรดคำสั่ง Import ให้ดึงประวัติตามวันที่ได้
@@ -1376,6 +1588,16 @@
             const uid = auth.currentUser?.uid;
             if(!uid) return;
             set(ref(db, `users/${uid}/PC_Control/command`), `timer:cancel`);
+        };
+
+        window.openInstallModal = () => {
+            document.getElementById('install-overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        };
+        window.closeInstallModal = (e) => {
+            if (e && e.target !== document.getElementById('install-overlay')) return;
+            document.getElementById('install-overlay').classList.remove('show');
+            document.body.style.overflow = '';
         };
 
     </script>
