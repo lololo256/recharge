@@ -66,6 +66,8 @@ function showAlert({ icon = 'ℹ️', title, body, btnText = 'รับทรา
     overlay.classList.add('show');
 }
 
+window.showAlertModal = showAlert;
+
 function closeModal() {
     document.getElementById('custom-modal-overlay').classList.remove('show');
 }
@@ -966,7 +968,7 @@ window.cancelTimer = () => {
             localStorage.setItem('recharge_theme', newTheme);
         });
     }
-    
+
     // ตั้งค่าธีมตอนโหลดหน้าแรกก่อนที่สคริปต์จะหา selector เจอ (กันกระตุก)
     const initialTheme = localStorage.getItem('recharge_theme') || 'dark';
     document.body.setAttribute('data-theme', initialTheme);
