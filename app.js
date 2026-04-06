@@ -973,3 +973,4 @@ window.cancelTimer = () => {
     const initialTheme = localStorage.getItem('recharge_theme') || 'dark';
     document.body.setAttribute('data-theme', initialTheme);
 })();
+
