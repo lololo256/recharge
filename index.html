@@ -81,14 +81,15 @@
         }
 
         .skeleton-loader {
-            color: transparent !important;
-            background: rgba(255, 255, 255, 0.1) !important;
+            color: var(--text-sub) !important;
+            background: rgba(100, 100, 100, 0.2) !important;
             animation: skeletonPulse 1.5s infinite ease-in-out;
             border-radius: 6px;
             display: inline-block;
             min-width: 60px;
             pointer-events: none;
             user-select: none;
+            padding: 0 8px;
         }
 
         * {
@@ -2091,8 +2092,8 @@
             document.body.style.overflow = '';
         }
     </script>
-
-    <script type="module" src="./app.js"></script>
+    <!-- Module Scripts (Added v=2.0 parameter to bypass browser cache) -->
+    <script type="module" src="./app.js?v=2.0"></script>
 
 </body>
 
