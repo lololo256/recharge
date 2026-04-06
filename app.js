@@ -219,6 +219,7 @@ onAuthStateChanged(auth, (user) => {
         document.getElementById('bottom-nav').style.display = 'flex';
 
         document.getElementById('uid-display').innerText = "UID: " + user.uid;
+        document.getElementById('uid-display').classList.remove('skeleton-loader');
 
         const copyBtn = document.getElementById('copyUidBtn');
         copyBtn.style.display = 'flex';
@@ -314,6 +315,7 @@ onAuthStateChanged(auth, (user) => {
                     batCard.style.display = 'block';
                     document.getElementById('val-battery').innerText = batPct + '%';
                     document.getElementById('hw-battery-status').innerText = d.Is_Plugged ? '🔌 กำลังชาร์จ' : '🔋 ใช้แบตเตอรี่';
+                    document.getElementById('hw-battery-status').classList.remove('skeleton-loader');
                     const bar = document.getElementById('bar-battery');
                     bar.style.width = batPct + '%';
                     bar.style.background = batPct < 20 ? 'var(--red)' : batPct < 50 ? 'var(--yellow)' : 'var(--primary)';
@@ -364,6 +366,8 @@ onAuthStateChanged(auth, (user) => {
                 document.getElementById('hw-cpu-name').innerText = hw.cpu_model || '–';
                 document.getElementById('hw-cpu-cores').innerText = `GPU: ${hw.gpu_model || '–'} | จอ ${hw.monitor_count || 1} จอ`;
                 document.getElementById('pc-name-display').innerText = (hw.os || 'Windows') + " PC";
+                document.getElementById('hw-cpu-cores').classList.remove('skeleton-loader');
+                document.getElementById('pc-name-display').classList.remove('skeleton-loader');
             }
         });
 
