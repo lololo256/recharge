@@ -366,10 +366,8 @@ auth.onAuthStateChanged((user) => {
                 if (d.Top_Apps && d.Top_Apps.length > 0) {
                     let appsHtml = "";
                     d.Top_Apps.forEach(app => {
-                        let bellHtml = '';
-                        if (app.cpu >= 6.5 || (app.ram_gb && app.ram_gb >= 1.0)) {
-                            bellHtml = `<button class="kill-btn" style="color:var(--yellow); border-color:var(--yellow); margin-right:5px;" title="นี่คือเกมใช่ไหม?" onclick="markAsGame('${app.name}')"><span class="material-symbols-rounded">notifications</span></button>`;
-                        }
+                        // แสดงกระดิ่งแจ้งเตือนทุกโปรแกรมที่รันอยู่เพื่อให้ผู้ใช้กดเลือกเป็นเกมได้
+                        let bellHtml = `<button class="kill-btn" style="color:var(--primary); border-color:var(--primary); opacity:0.6; margin-right:5px;" title="นี่คือเกมใช่ไหม?" onclick="markAsGame('${app.name}')"><span class="material-symbols-rounded">notifications</span></button>`;
                         const ramText = app.ram_gb !== undefined ? ` | <span style="font-size:11px; color:var(--text-sub);">${app.ram_gb.toFixed(1)}GB</span>` : '';
                         appsHtml += `
                         <div class="top-app-item">
@@ -393,11 +391,8 @@ auth.onAuthStateChanged((user) => {
                 if (d.Top_RAM_Apps && d.Top_RAM_Apps.length > 0) {
                     let ramHtml = "";
                     d.Top_RAM_Apps.forEach(app => {
-                        let bellHtml = '';
-                        // แสดงกระดิ่งถ้า CPU >= 6.5 หรือ RAM >= 1.0GB
-                        if (app.cpu >= 6.5 || (app.ram_gb && app.ram_gb >= 1.0)) {
-                            bellHtml = `<button class="kill-btn" style="color:var(--yellow); border-color:var(--yellow); margin-right:5px;" title="นี่คือเกมใช่ไหม?" onclick="markAsGame('${app.name}')"><span class="material-symbols-rounded">notifications</span></button>`;
-                        }
+                        // แสดงกระดิ่งแจ้งเตือนทุกโปรแกรมที่รันอยู่เพื่อให้ผู้ใช้กดเลือกเป็นเกมได้
+                        let bellHtml = `<button class="kill-btn" style="color:var(--primary); border-color:var(--primary); opacity:0.6; margin-right:5px;" title="นี่คือเกมใช่ไหม?" onclick="markAsGame('${app.name}')"><span class="material-symbols-rounded">notifications</span></button>`;
                         ramHtml += `
                         <div class="top-app-item">
                             <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">terminal</span> ${app.name}</div>
@@ -1145,6 +1140,27 @@ window.addSuspectNotification = function (uid, suspectData) {
     _saveNotifs();
     _updateBellBadge();
     if (_notifPanelOpen) _renderNotifPanel();
+
+    // 🔔 แสดง Popup แจ้งเตือนเล็กๆ ลอยลงมาจากกระดิ่งทันที
+    showBellPopup('🤖', `ตรวจพบ: ${suspectData.name}`, 'นี่คือเกมใช่ไหม? (กดที่กระดิ่งเพื่อเลือก)', 'var(--primary)');
+};
+
+// 🎮 ล้าง Ignore List
+window.clearIgnoreList = function() {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    showConfirm({
+        icon: '🔄',
+        title: 'รีเซ็ตรายการ Ignore ?',
+        body: 'คุณต้องการล้างรายการ "โปรแกรมที่ไม่ใช่เกม" ทั้งหมดที่เคยบันทึกไว้ใช่ไหม?<br><small>ระบบ AI จะกลับมาทักถามเรื่องโปรแกรมเหล่านั้นใหม่หากกินทรัพยากรสูง</small>',
+        confirmText: 'ใช่, รีเซ็ตทั้งหมด',
+        danger: true,
+        onConfirm: () => {
+            db.ref(`users/${uid}/ai_settings/ignored_games`).set(null).then(() => {
+                showToast('✅ รีเซ็ตรายการ Ignore เรียบร้อย!');
+            });
+        }
+    });
 };
 
 // 🎮 กดปุ่ม "ใช่/ไม่ใช่" ในแผงกระดิ่ง
@@ -1307,4 +1323,3 @@ window._onGamingStop = function (lastGame, lastMins, lastCost) {
     const initialTheme = localStorage.getItem('recharge_theme') || 'dark';
     document.body.setAttribute('data-theme', initialTheme);
 })();
-
