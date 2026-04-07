@@ -1,9 +1,8 @@
+// ReCharge Premium — Main Application Script (Firebase Compat SDK)
+
 // 🌟 ReCharge Premium — Main Application Script
 // แยกออกจาก RE1.3.html เพื่อความสะอาดของโค้ด
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getDatabase, ref, onValue, get, query, limitToLast, set, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDsiZf_nHuDjXm5_lvFbjIPq8akOZfiRQ0",
@@ -15,13 +14,31 @@ const firebaseConfig = {
     appId: "1:118119985392:web:67e19911cdf7cb9d8e5235"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-const provider = new GoogleAuthProvider();
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const provider = new firebase.auth.GoogleAuthProvider();
 
 let chartCpu, chartRam, chartWatt, chartNet, chartTemp;
 let offlineTimer = null;
+
+// =====================================================
+// ฟังก์ชันคำนวณและวาดเส้นสำหรับวิดเจ็ตวงกลม 2 ชั้น
+// =====================================================
+function updateDualRing(elementClass, radius, value, isTemp = false) {
+    const circle = document.querySelector(`.${elementClass}`);
+    if (!circle) return;
+
+    const circumference = 2 * Math.PI * radius;
+
+    // ป้องกันค่าเกิน 100 (สมมติอุณหภูมิเกิน 100 องศา ให้กราฟเต็มวงไปเลย)
+    let percent = value > 100 ? 100 : value;
+
+    const offset = circumference - (percent / 100) * circumference;
+
+    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+    circle.style.strokeDashoffset = offset;
+}
 
 // =====================================================
 // 🎨 Custom Modal System (แทน browser confirm/alert)
@@ -109,7 +126,7 @@ window.sendPCCommand = (cmd) => {
             cancelText: 'ยกเลิก',
             danger: true,
             onConfirm: () => {
-                set(ref(db, `users/${uid}/PC_Control/command`), cmd).then(() => {
+                db.ref(`users/${uid}/PC_Control/command`).set(cmd).then(() => {
                     showResetUidBanner();
                 });
             }
@@ -131,7 +148,7 @@ window.sendPCCommand = (cmd) => {
         confirmText: `สั่ง ${info.label}`,
         danger: info.danger,
         onConfirm: () => {
-            set(ref(db, `users/${uid}/PC_Control/command`), cmd).then(() => {
+            db.ref(`users/${uid}/PC_Control/command`).set(cmd).then(() => {
                 showToast(`✅ ส่งคำสั่ง ${info.label} แล้ว!`);
             });
         }
@@ -191,7 +208,7 @@ window.sendBoardCommand = (cmd) => {
         confirmText: 'รีเซ็ตบอร์ด',
         danger: true,
         onConfirm: () => {
-            set(ref(db, `users/${uid}/PC_Monitor/Board_Command`), cmd).then(() => {
+            db.ref(`users/${uid}/PC_Monitor/Board_Command`).set(cmd).then(() => {
                 showToast('📡 บอร์ดกำลังรีเซ็ตตัวเองครับ!');
             });
         }
@@ -208,13 +225,13 @@ window.saveHardwareSetup = () => {
         has_aio: document.getElementById('setup-aio').classList.contains('active'),
         unit_price: parseFloat(document.getElementById('setup-unit-price').value) || 4.5
     };
-    set(ref(db, `users/${uid}/pc_setup`), setupData).then(() => showToast('✅ บันทึกสเปคและเรทค่าไฟเรียบร้อย!'));
+    db.ref(`users/${uid}/pc_setup`).set(setupData).then(() => showToast('✅ บันทึกสเปคและเรทค่าไฟเรียบร้อย!'));
 };
 
-document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => window.location.reload());
+document.getElementById('loginBtn').onclick = () => auth.signInWithPopup(provider);
+document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.reload());
 
-onAuthStateChanged(auth, (user) => {
+auth.onAuthStateChanged((user) => {
     if (user) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'block';
@@ -241,7 +258,7 @@ onAuthStateChanged(auth, (user) => {
         let unitPrice = 4.5;
         let globalSessions = null;
 
-        onValue(ref(db, `users/${user.uid}/pc_setup`), (snap) => {
+        db.ref(`users/${user.uid}/pc_setup`).on('value', (snap) => {
             const setup = snap.val();
             if (setup) {
                 document.getElementById('setup-fan').value = setup.fan_count || 0;
@@ -257,7 +274,7 @@ onAuthStateChanged(auth, (user) => {
             }
         });
 
-        onValue(ref(db, `users/${user.uid}/PC_Monitor`), (snap) => {
+        db.ref(`users/${user.uid}/PC_Monitor`).on('value', (snap) => {
             const d = snap.val();
 
             if (d) {
@@ -277,18 +294,30 @@ onAuthStateChanged(auth, (user) => {
                 document.getElementById('status-dot').style.background = "var(--primary)";
                 document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--primary)";
 
-                document.getElementById('val-cpu').innerText = d.CPU || 0;
-                document.getElementById('val-gpu').innerText = d.GPU || 0;
-                document.getElementById('val-ram').innerText = d.RAM || 0;
+                let cpu_usage = d.CPU || 0;
+                let cpu_temp = d.CPU_Temp || 0;
+                let gpu_usage = d.GPU || 0;
+                let gpu_temp = d.GPU_Temp || 0;
+                let ram_usage = d.RAM || 0;
+
+                // สำหรับ Storage ให้ใช้ Storage_C_Percent ถ้ามี หรือคำนวณจาก Free/Total (ตอนนี้จำลอง 50 ไปก่อนตามผู้ใช้)
+                let storage_percent = 50;
+
+                document.getElementById('val-cpu').innerText = cpu_usage;
+                updateDualRing('cpu-usage-ring', 40, cpu_usage);
+                updateDualRing('cpu-temp-ring', 25, cpu_temp, true);
+
+                document.getElementById('val-gpu').innerText = gpu_usage;
+                updateDualRing('gpu-usage-ring', 40, gpu_usage);
+                updateDualRing('gpu-temp-ring', 25, gpu_temp, true);
+
+                document.getElementById('val-ram').innerText = ram_usage;
+                updateDualRing('ram-usage-ring', 40, ram_usage);
+
                 const wattNow = Math.round(d.Watt || 0);
                 document.getElementById('val-watt').innerText = wattNow + "W";
-                // ✅ Watt อัปเดต real-time เหมือน CPU/GPU
                 document.getElementById('hw-avg-watt').innerText = `ตอนนี้ ${wattNow} W`;
                 document.getElementById('bar-watt').style.width = Math.min((wattNow / 500) * 100, 100) + "%";
-
-                document.getElementById('gauge-cpu').style.setProperty('--p', (d.CPU || 0) + '%');
-                document.getElementById('gauge-gpu').style.setProperty('--p', (d.GPU || 0) + '%');
-                document.getElementById('gauge-ram').style.setProperty('--p', (d.RAM || 0) + '%');
 
                 let cpuTemp = d.CPU_Temp || 0;
                 document.getElementById('val-cpu-temp').innerText = cpuTemp + "°C";
@@ -305,7 +334,7 @@ onAuthStateChanged(auth, (user) => {
 
                 if (d.insight_wasted_baht > 0.5) {
                     insightBanner.style.display = 'flex';
-                    insightText.innerHTML = `ตรวจพบการเปิดเครื่องทิ้งไว้โดยไม่ใช้งาน <b>${d.insight_idle_mins} นาที</b><br>สูญเสียค่าไฟไปแล้วประมาณ <b style="color:var(--red);">฿${d.insight_wasted_baht.toFixed(2)}</b><br><span style="color:var(--text-sub); font-size:11px;">📌 คำแนะนำ: หากไม่ได้ใช้งานต่อ กรุณาสั่ง Sleep หรือปิดเครื่องเพื่อประหยัดพลังงาน</span>`;
+                    insightText.innerHTML = `ตรวจพบการเปิดเครื่องทิ้งไว้โดยไม่ใช้งาน <b>${(d.insight_idle_mins / 60).toFixed(1)} ชม.</b><br>สูญเสียค่าไฟไปแล้วประมาณ <b style="color:var(--red);">฿${d.insight_wasted_baht.toFixed(2)}</b><br><span style="color:var(--text-sub); font-size:11px;">📌 คำแนะนำ: หากไม่ได้ใช้งานต่อ กรุณาสั่ง Sleep หรือปิดเครื่องเพื่อประหยัดพลังงาน</span>`;
                 } else {
                     insightBanner.style.display = 'none';
                 }
@@ -337,20 +366,57 @@ onAuthStateChanged(auth, (user) => {
                 if (d.Top_Apps && d.Top_Apps.length > 0) {
                     let appsHtml = "";
                     d.Top_Apps.forEach(app => {
+                        let bellHtml = '';
+                        if (app.cpu >= 6.5 || (app.ram_gb && app.ram_gb >= 1.0)) {
+                            bellHtml = `<button class="kill-btn" style="color:var(--yellow); border-color:var(--yellow); margin-right:5px;" title="นี่คือเกมใช่ไหม?" onclick="markAsGame('${app.name}')"><span class="material-symbols-rounded">notifications</span></button>`;
+                        }
+                        const ramText = app.ram_gb !== undefined ? ` | <span style="font-size:11px; color:var(--text-sub);">${app.ram_gb.toFixed(1)}GB</span>` : '';
                         appsHtml += `
                         <div class="top-app-item">
                             <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">terminal</span> ${app.name}</div>
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div class="top-app-cpu">${app.cpu}%</div>
-                                <button class="kill-btn" title="Force Close ${app.name}" onclick="killProcess('${app.name}')">
-                                    <span class="material-symbols-rounded">close</span>
-                                </button>
+                                <div class="top-app-cpu">${app.cpu}%${ramText}</div>
+                                <div style="display:flex;">
+                                    ${bellHtml}
+                                    <button class="kill-btn" title="Force Close ${app.name}" onclick="killProcess('${app.name}')">
+                                        <span class="material-symbols-rounded">close</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>`;
                     });
                     document.getElementById('top-apps-container').innerHTML = appsHtml;
                 } else {
-                    document.getElementById('top-apps-container').innerHTML = '<div style="font-size: 12px; color: var(--text-sub); text-align: center;">ไม่มีโปรแกรมสูบแบตในขณะนี้</div>';
+                    document.getElementById('top-apps-container').innerHTML = '<div style="font-size: 12px; color: var(--text-sub); text-align: center;">ไม่มีโปรแกรมสูบ CPU ในขณะนี้</div>';
+                }
+
+                if (d.Top_RAM_Apps && d.Top_RAM_Apps.length > 0) {
+                    let ramHtml = "";
+                    d.Top_RAM_Apps.forEach(app => {
+                        let bellHtml = '';
+                        // แสดงกระดิ่งถ้า CPU >= 6.5 หรือ RAM >= 1.0GB
+                        if (app.cpu >= 6.5 || (app.ram_gb && app.ram_gb >= 1.0)) {
+                            bellHtml = `<button class="kill-btn" style="color:var(--yellow); border-color:var(--yellow); margin-right:5px;" title="นี่คือเกมใช่ไหม?" onclick="markAsGame('${app.name}')"><span class="material-symbols-rounded">notifications</span></button>`;
+                        }
+                        ramHtml += `
+                        <div class="top-app-item">
+                            <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">terminal</span> ${app.name}</div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div class="top-app-cpu"><span style="font-size:11px; opacity:0.7">${app.cpu}%</span> | ${app.ram_gb.toFixed(1)}GB</div>
+                                <div style="display:flex;">
+                                    ${bellHtml}
+                                    <button class="kill-btn" title="Force Close ${app.name}" onclick="killProcess('${app.name}')">
+                                        <span class="material-symbols-rounded">close</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    document.getElementById('top-ram-apps-container').innerHTML = ramHtml;
+                } else {
+                    if (document.getElementById('top-ram-apps-container')) {
+                        document.getElementById('top-ram-apps-container').innerHTML = '<div style="font-size: 12px; color: var(--text-sub); text-align: center;">ไม่มีโปรแกรมสูบ RAM ในขณะนี้</div>';
+                    }
                 }
 
                 offlineTimer = setTimeout(() => {
@@ -362,7 +428,7 @@ onAuthStateChanged(auth, (user) => {
             }
         });
 
-        onValue(ref(db, `users/${user.uid}/hardware_info`), (snap) => {
+        db.ref(`users/${user.uid}/hardware_info`).on('value', (snap) => {
             if (snap.val()) {
                 const hw = snap.val();
                 document.getElementById('hw-cpu-name').innerText = hw.cpu_model || '–';
@@ -386,7 +452,7 @@ onAuthStateChanged(auth, (user) => {
                 confirmText: 'Force Close',
                 danger: true,
                 onConfirm: () => {
-                    set(ref(db, `users/${uid}/PC_Control/command`), `kill:${processName}`)
+                    db.ref(`users/${uid}/PC_Control/command`).set(`kill:${processName}`)
                         .then(() => showKillToast(`⏳ กำลังปิด ${processName}...`, 'var(--yellow)'));
                 }
             });
@@ -402,7 +468,7 @@ onAuthStateChanged(auth, (user) => {
             window._killToastTimer = setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        onValue(ref(db, `users/${user.uid}/PC_Control/kill_result`), (snap) => {
+        db.ref(`users/${user.uid}/PC_Control/kill_result`).on('value', (snap) => {
             const r = snap.val();
             if (!r || !r.status) return;
             if (r.status === 'killed') {
@@ -417,7 +483,7 @@ onAuthStateChanged(auth, (user) => {
         // =====================================================
         let _lastGameEndKey = '';  // BUG FIX: ป้องกัน toast ซ้ำตอนโหลดหน้า
 
-        onValue(ref(db, `users/${user.uid}/gaming_mode`), (snap) => {
+        db.ref(`users/${user.uid}/gaming_mode`).on('value', (snap) => {
             const g = snap.val();
             const banner = document.getElementById('gaming-banner');
             const wattEl = document.getElementById('gaming-watt');
@@ -426,7 +492,8 @@ onAuthStateChanged(auth, (user) => {
                 document.body.classList.add('gaming-active');
                 banner.classList.add('active');
                 document.getElementById('gaming-game-name').innerText = g.game || 'Unknown Game';
-                document.getElementById('gaming-mins').innerText = g.session_mins != null ? g.session_mins : '0';
+                let tM = g.session_mins || 0;
+                document.getElementById('gaming-mins').innerText = `${Math.floor(tM / 60)}.${Math.floor(tM % 60).toString().padStart(2, '0')}`;
                 document.getElementById('gaming-cost').innerText = g.cost_thb != null ? Number(g.cost_thb).toFixed(2) : '0.00';
                 const wattNow = document.getElementById('val-watt').innerText;
                 if (wattEl) wattEl.innerText = wattNow;
@@ -469,7 +536,7 @@ onAuthStateChanged(auth, (user) => {
             setTimeout(() => div.remove(), 12000);
         }
 
-        onValue(ref(db, `users/${user.uid}/alerts/cpu_temp`), (snap) => {
+        db.ref(`users/${user.uid}/alerts/cpu_temp`).on('value', (snap) => {
             const a = snap.val();
             if (!a || !a.time) return;
             if (a.time === _lastAlertCpuTime) return;
@@ -480,7 +547,7 @@ onAuthStateChanged(auth, (user) => {
             );
         });
 
-        onValue(ref(db, `users/${user.uid}/alerts/daily_cost`), (snap) => {
+        db.ref(`users/${user.uid}/alerts/daily_cost`).on('value', (snap) => {
             const a = snap.val();
             if (!a || !a.time) return;
             if (a.time === _lastAlertCostTime) return;
@@ -489,6 +556,28 @@ onAuthStateChanged(auth, (user) => {
                 `ค่าไฟวันนี้ ฿${a.value} — เกินเป้าแล้ว!`,
                 `เป้าที่ตั้งไว้: ฿${a.threshold} — ลองปิดโปรแกรมหนักๆ ดูครับ\nเวลา ${a.time}`
             );
+        });
+
+        // =====================================================
+        // 🤖 AI Smart Game Discovery — แจ้งเตือนที่กระดิ่งเท่านั้น (ไม่มี popup)
+        // =====================================================
+        let lastSuspect = null;
+        db.ref(`users/${user.uid}/gaming_mode/suspect`).on('value', (snap) => {
+            const suspect = snap.val();
+            if (!suspect || !suspect.name) return;
+            if (lastSuspect === suspect.name) return;
+
+            // ถ้ากำลังอยู่ในโหมดเกมอยู่แล้ว ไม่ต้องถาม
+            if (document.body.classList.contains('gaming-active')) return;
+            lastSuspect = suspect.name;
+
+            // 🔔 แจ้งเตือนที่กระดิ่งซ่อนไว้เงียบๆ (เผื่อผู้ใช้มากดดูภายหลัง)
+            window.addSuspectNotification(user.uid, {
+                name: suspect.name,
+                cpu_pct: suspect.cpu_pct,
+                ram_gb: suspect.ram_gb,
+                detected_at: suspect.detected_at
+            });
         });
 
         // 🌟 ระบบดึงประวัติตามวันที่เลือก (Time Machine)
@@ -500,14 +589,9 @@ onAuthStateChanged(auth, (user) => {
             const startOfDay = dateStr + " 00:00:00";
             const endOfDay = dateStr + " 23:59:59";
 
-            const historyQuery = query(
-                ref(db, `users/${user.uid}/history_logs`),
-                orderByChild("timestamp"),
-                startAt(startOfDay),
-                endAt(endOfDay)
-            );
+            const historyQuery = db.ref(`users/${user.uid}/history_logs`).orderByChild("timestamp").startAt(startOfDay).endAt(endOfDay);
 
-            historyUnsubscribe = onValue(historyQuery, (snap) => {
+            historyUnsubscribe = historyQuery.on('value', (snap) => {
                 const logs = snap.val();
                 if (logs) {
                     let labels = [], cpu = [], gpu = [], ram = [], watt = [], netDl = [], netUl = [], cpuTemp = [], gpuTemp = [];
@@ -525,9 +609,10 @@ onAuthStateChanged(auth, (user) => {
 
                         if (log.top_apps) {
                             log.top_apps.forEach(app => {
-                                if (!appUsage[app.name]) appUsage[app.name] = { count: 0, total_cpu: 0 };
+                                if (!appUsage[app.name]) appUsage[app.name] = { count: 0, total_cpu: 0, total_ram: 0 };
                                 appUsage[app.name].count += 1;
                                 appUsage[app.name].total_cpu += app.cpu;
+                                if (app.ram_gb) appUsage[app.name].total_ram += app.ram_gb;
                             });
                         }
                     });
@@ -542,16 +627,18 @@ onAuthStateChanged(auth, (user) => {
                         return {
                             name: name,
                             avg_cpu: (appUsage[name].total_cpu / appUsage[name].count).toFixed(1),
+                            avg_ram: (appUsage[name].total_ram / appUsage[name].count).toFixed(1),
                             score: appUsage[name].total_cpu
                         };
                     }).sort((a, b) => b.score - a.score).slice(0, 5);
 
                     let appsHtml = "";
                     sortedApps.forEach(app => {
+                        const ramDisplay = app.avg_ram > 0 ? ` | <span style="font-size:11px; opacity:0.8;">${app.avg_ram}GB</span>` : '';
                         appsHtml += `
                         <div class="top-app-item">
                             <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">apps</span> ${app.name}</div>
-                            <div class="top-app-cpu">รันเฉลี่ย ${app.avg_cpu}%</div>
+                            <div class="top-app-cpu">รันเฉลี่ย ${app.avg_cpu}%${ramDisplay}</div>
                         </div>`;
                     });
                     document.getElementById('history-apps-container').innerHTML = appsHtml;
@@ -594,12 +681,12 @@ onAuthStateChanged(auth, (user) => {
             const currentWatt = parseFloat(document.getElementById('hw-avg-watt')?.innerText?.replace(/[^\d.]/g, '')) || 0;
             const addedCost = (currentWatt / 1000) * elapsedHrs * unitPrice;
             const totalCost = _dailyBaseCost + addedCost;
-            document.getElementById('timeTodayVal').innerText = totalMins;
+            document.getElementById('timeTodayVal').innerText = `${Math.floor(totalMins / 60)}.${Math.floor(totalMins % 60).toString().padStart(2, '0')}`;
             document.getElementById('costTodayVal').innerText = totalCost.toFixed(2);
         }
 
         // เมื่อ daily_summary อัปเดต (ทุก 5 นาทีจาก Python) → รีเซ็ต base
-        onValue(ref(db, `users/${user.uid}/daily_summary/${todayStr2}`), (snap) => {
+        db.ref(`users/${user.uid}/daily_summary/${todayStr2}`).on('value', (snap) => {
             const d = snap.val();
             _dailyBaseMins = d ? (d.session_mins || 0) : 0;
             _dailyBaseCost = d ? (d.cost_thb || 0) : 0;
@@ -611,10 +698,11 @@ onAuthStateChanged(auth, (user) => {
         });
 
         // ค่าไฟเดือนนี้ → monthly_summary (เหมือนหน้าสรุปรายปี ✅)
-        onValue(ref(db, `users/${user.uid}/monthly_summary/${monthStr2}`), (snap) => {
+        db.ref(`users/${user.uid}/monthly_summary/${monthStr2}`).on('value', (snap) => {
             const m = snap.val();
             document.getElementById('costMonthVal').innerText = m ? Number(m.total_cost_thb || 0).toFixed(2) : '0.00';
-            document.getElementById('timeMonthVal').innerText = m ? Math.round(m.total_session_mins || 0) : 0;
+            let mTm = m ? (m.total_session_mins || 0) : 0;
+            document.getElementById('timeMonthVal').innerText = `${Math.floor(mTm / 60)}.${Math.floor(mTm % 60).toString().padStart(2, '0')}`;
         });
 
     }
@@ -671,14 +759,15 @@ function loadDailyGameLog(dateStr) {
     const uid = auth.currentUser?.uid;
     if (!uid || !dateStr) return;
     document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">กำลังโหลด...</div>';
-    get(ref(db, `users/${uid}/daily_game_log/${dateStr}`)).then(snap => {
+    db.ref(`users/${uid}/daily_game_log/${dateStr}`).once('value').then(snap => {
         const data = snap.val();
         if (data) {
-            document.getElementById('gaming-total-mins').innerText = data.total_mins || 0;
+            let dTm = data.total_mins || 0;
+            document.getElementById('gaming-total-mins').innerText = `${Math.floor(dTm / 60)}.${Math.floor(dTm % 60).toString().padStart(2, '0')}`;
             document.getElementById('gaming-total-cost').innerText = Number(data.total_cost_thb || 0).toFixed(2);
             renderGamesList(data.games, document.getElementById('gaming-games-list'));
         } else {
-            document.getElementById('gaming-total-mins').innerText = 0;
+            document.getElementById('gaming-total-mins').innerText = '0.0';
             document.getElementById('gaming-total-cost').innerText = '0.00';
             document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">ไม่มีข้อมูลเกมในวันนี้</div>';
         }
@@ -695,20 +784,21 @@ function loadMonthlyGameLog() {
     document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">กำลังโหลด...</div>';
     document.getElementById('gaming-days-list').innerHTML = '';
 
-    get(ref(db, `users/${uid}/monthly_game_log/${monthStr}`)).then(snap => {
+    db.ref(`users/${uid}/monthly_game_log/${monthStr}`).once('value').then(snap => {
         const data = snap.val();
         if (data) {
-            document.getElementById('gaming-total-mins').innerText = data.total_mins || 0;
+            let pTm = data.total_mins || 0;
+            document.getElementById('gaming-total-mins').innerText = `${Math.floor(pTm / 60)}.${Math.floor(pTm % 60).toString().padStart(2, '0')}`;
             document.getElementById('gaming-total-cost').innerText = Number(data.total_cost_thb || 0).toFixed(2);
             renderGamesList(data.games, document.getElementById('gaming-games-list'));
         } else {
-            document.getElementById('gaming-total-mins').innerText = 0;
+            document.getElementById('gaming-total-mins').innerText = '0.0';
             document.getElementById('gaming-total-cost').innerText = '0.00';
             document.getElementById('gaming-games-list').innerHTML = '<div id="gaming-log-empty">ยังไม่มีข้อมูลเกมเดือนนี้</div>';
         }
     });
 
-    get(ref(db, `users/${uid}/daily_game_log`)).then(snap => {
+    db.ref(`users/${uid}/daily_game_log`).once('value').then(snap => {
         const allDays = snap.val();
         if (!allDays) return;
         const daysInMonth = Object.keys(allDays).filter(d => d.startsWith(monthStr)).sort().reverse();
@@ -757,7 +847,7 @@ function loadYearlySummary(year) {
     document.getElementById('monthly-summary-list').innerHTML = '';
     document.getElementById('year-total-bar').style.display = 'none';
 
-    get(ref(db, `users/${uid}/monthly_summary`)).then(snap => {
+    db.ref(`users/${uid}/monthly_summary`).once('value').then(snap => {
         document.getElementById('summary-loading').style.display = 'none';
         const allMonths = snap.val();
         if (!allMonths) {
@@ -938,7 +1028,7 @@ window.setTimer = () => {
         body: `ยืนยันตั้งเวลาปิดเครื่องในอีก <b>${mins} นาที</b> ใช่ไหมครับ?`,
         confirmText: 'เริ่มจับเวลา',
         onConfirm: () => {
-            set(ref(db, `users/${uid}/PC_Control/command`), `timer:${mins}`);
+            db.ref(`users/${uid}/PC_Control/command`).set(`timer:${mins}`);
             showToast(`⏳ ตั้งเวลาปิดเครื่องใน ${mins} นาทีแล้ว`);
         }
     });
@@ -947,7 +1037,251 @@ window.setTimer = () => {
 window.cancelTimer = () => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    set(ref(db, `users/${uid}/PC_Control/command`), `timer:cancel`);
+    db.ref(`users/${uid}/PC_Control/command`).set(`timer:cancel`);
+};
+
+// =====================================================
+// 🔔 ระบบกระดิ่งแจ้งเตือนภายในแอป (In-App Notifications)
+// =====================================================
+let _notifList = JSON.parse(localStorage.getItem("rc_notifs") || "[]");
+let _notifPanelOpen = false;
+
+function _saveNotifs() {
+    _notifList = _notifList.slice(0, 30);
+    localStorage.setItem("rc_notifs", JSON.stringify(_notifList));
+}
+
+function _updateBellBadge() {
+    const unread = _notifList.filter(n => !n.read).length;
+    const badge = document.getElementById("notif-badge");
+    if (badge) badge.style.display = unread > 0 ? "block" : "none";
+}
+
+function _renderNotifPanel() {
+    const list = document.getElementById("notif-list");
+    if (!list) return;
+    if (_notifList.length === 0) {
+        list.innerHTML = `<div style="padding:24px;text-align:center;font-size:12px;color:var(--text-sub)">ยังไม่มีการแจ้งเตือน</div>`;
+        return;
+    }
+    list.innerHTML = _notifList.map((n, idx) => {
+        // 🎮 ถ้าเป็น notification แบบ suspect → แสดงปุ่ม "ใช่ / ไม่ใช่"
+        let actionsHtml = '';
+        if (n.type === 'suspect' && !n.resolved) {
+            actionsHtml = `
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button onclick="window._resolveSuspect(${idx}, true)" style="flex:1;padding:6px 0;border:none;border-radius:8px;background:var(--primary);color:#1e212b;font-size:11px;font-weight:700;font-family:'Prompt';cursor:pointer;">ใช่, เป็นเกม</button>
+                    <button onclick="window._resolveSuspect(${idx}, false)" style="flex:1;padding:6px 0;border:none;border-radius:8px;background:rgba(231,76,60,.2);color:var(--red);font-size:11px;font-weight:700;font-family:'Prompt';cursor:pointer;">ไม่ใช่</button>
+                </div>`;
+        } else if (n.type === 'suspect' && n.resolved) {
+            actionsHtml = `<div style="font-size:10px;color:var(--text-sub);margin-top:4px;font-style:italic;">${n.resolved === 'yes' ? '✅ จำไว้แล้วว่าเป็นเกม' : '❌ ลบข้อมูลแล้ว'}</div>`;
+        }
+
+        return `<div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05);${!n.read ? 'background:rgba(32,201,151,.04)' : ''}">
+            <div style="display:flex;gap:10px;">
+                <div style="font-size:22px;flex-shrink:0">${n.icon}</div>
+                <div style="flex:1">
+                    <div style="font-size:12px;font-weight:700;color:${n.color || 'var(--text-main)'}">${n.title}</div>
+                    <div style="font-size:11px;color:var(--text-sub);margin-top:2px">${n.body}</div>
+                    <div style="font-size:10px;color:var(--text-sub);margin-top:4px;opacity:.6">${n.time}</div>
+                    ${actionsHtml}
+                </div>
+                ${!n.read ? '<div style="width:7px;height:7px;background:var(--primary);border-radius:50%;flex-shrink:0;margin-top:4px"></div>' : ''}
+            </div>
+        </div>`;
+    }).join("");
+}
+
+function showBellPopup(icon, title, body, color) {
+    // สร้าง popup เล็กๆ ลอยลงมาจากกระดิ่ง
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+                position: fixed; top: 70px; right: 170px; z-index: 9999;
+                background: ${color || 'var(--bg-card)'}; border: var(--card-border);
+                border-radius: 12px; padding: 12px 16px; min-width: 250px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                display: flex; gap: 12px; align-items: flex-start;
+                animation: slideToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                color: #fff;
+            `;
+    // ถ้าเป็นสี var(--bg-card) ให้เป็นสีพื้นฐาน ถ้าเป็น var(--red) ให้เปลี่ยนสีพื้นเพื่อเตือน
+    if (color && color.includes('var(')) {
+        popup.style.background = 'var(--bg-card)';
+        popup.style.borderLeft = `4px solid ${color}`;
+    }
+
+    popup.innerHTML = `
+                <div style="font-size: 24px; flex-shrink: 0; line-height: 1;">${icon}</div>
+                <div>
+                    <div style="font-size: 13px; font-weight: 700; color: ${color || 'var(--text-main)'};">${title}</div>
+                    <div style="font-size: 11px; color: var(--text-sub); margin-top: 2px;">${body}</div>
+                </div>
+            `;
+    document.body.appendChild(popup);
+
+    setTimeout(() => {
+        popup.style.animation = 'slideToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) reverse';
+        popup.style.opacity = '0';
+        setTimeout(() => popup.remove(), 400);
+    }, 5000); // ให้อยู่ 5 วินาที
+}
+
+// 🎮 Suspect Notification — แจ้งเตือนที่กระดิ่งพร้อมปุ่ม action
+window.addSuspectNotification = function (uid, suspectData) {
+    const now = new Date();
+    const time = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    _notifList.unshift({
+        type: 'suspect',
+        icon: '🤖',
+        title: `ตรวจพบ: ${suspectData.name}`,
+        body: `CPU: ${suspectData.cpu_pct}% | RAM: ${suspectData.ram_gb}GB`,
+        color: 'var(--blue)',
+        time: time,
+        read: false,
+        resolved: null,
+        suspect_uid: uid,
+        suspect_name: suspectData.name
+    });
+    _saveNotifs();
+    _updateBellBadge();
+    if (_notifPanelOpen) _renderNotifPanel();
+};
+
+// 🎮 กดปุ่ม "ใช่/ไม่ใช่" ในแผงกระดิ่ง
+window._resolveSuspect = function (idx, isGame) {
+    const n = _notifList[idx];
+    if (!n || n.type !== 'suspect') return;
+
+    const uid = n.suspect_uid;
+    const suspectName = n.suspect_name;
+    const safeKey = suspectName.toLowerCase().replace(/[.$#\[\]\/]/g, '_');
+    const db = firebase.database();
+
+    if (isGame) {
+        // ✅ บอก Python ว่าใช่เกม → Python จะย้ายข้อมูลที่นับลับๆ มาแสดงทันที
+        const gameName = suspectName.replace('.exe', '');
+        // 1. บันทึกเป็น custom game (ครั้งหน้าจะได้จำทันที)
+        db.ref(`users/${uid}/ai_settings/custom_games/${safeKey}`).set(gameName);
+        // 2. ส่งคำสั่ง confirm ไป Python → Python จะย้าย pending data มาแสดง
+        db.ref(`users/${uid}/gaming_mode/suspect_response`).set('confirm');
+        n.resolved = 'yes';
+        n.body = `จำไว้แล้วว่า ${gameName} เป็นเกม — แสดงข้อมูลทันที`;
+        showToast(`✅ ระบบเรียนรู้แล้วว่า ${gameName} คือเกม!`);
+    } else {
+        // ❌ ส่งคำสั่ง reject ไป Python → Python จะลบข้อมูลลับทิ้งทั้งหมด
+        db.ref(`users/${uid}/ai_settings/ignored_games/${safeKey}`).set(true);
+        db.ref(`users/${uid}/gaming_mode/suspect_response`).set('reject');
+        n.resolved = 'no';
+        n.body = `ลบข้อมูล ${suspectName} แล้ว`;
+        showToast(`❌ ลบข้อมูลแล้ว`);
+    }
+
+    _saveNotifs();
+    _renderNotifPanel();
+};
+
+// 🎮 กดกระดิ่งใน Top Apps เพื่อยืนยันว่าเป็นเกมหรือไม่
+window.markAsGame = function (appName) {
+    showConfirm({
+        icon: '🤖',
+        title: 'นี่คือเกมใช่ไหม?',
+        body: `คุณต้องการให้ระบบจำว่า <b>${appName}</b> คือเกม และเริ่มคำนวณค่าไฟหรือไม่?`,
+        confirmText: 'ใช่ นี่คือเกม',
+        cancelText: 'ไม่ใช่',
+        danger: false,
+        onConfirm: () => {
+            const uid = firebase.auth().currentUser?.uid;
+            if (!uid) return;
+            const safeKey = appName.toLowerCase().replace(/[.$#\[\]\/]/g, '_');
+            const gameName = appName.replace('.exe', '');
+
+            // ให้ AI จำไว้เลยในอนาคต
+            firebase.database().ref(`users/${uid}/ai_settings/custom_games/${safeKey}`).set(gameName);
+
+            // ส่งไปบอก Python ให้คอนเฟิร์ม (เผื่อ Python จับ pending ไว้แล้ว)
+            firebase.database().ref(`users/${uid}/gaming_mode/suspect`).set({ name: appName });
+            firebase.database().ref(`users/${uid}/gaming_mode/suspect_response`).set('confirm');
+
+            showToast(`✅ เพิ่ม ${gameName} เป็นเกมแล้ว!`);
+        },
+        onCancel: () => {
+            const uid = firebase.auth().currentUser?.uid;
+            if (!uid) return;
+            const safeKey = appName.toLowerCase().replace(/[.$#\[\]\/]/g, '_');
+
+            // ลืมไปเลย
+            firebase.database().ref(`users/${uid}/ai_settings/ignored_games/${safeKey}`).set(true);
+
+            // สั่งให้ python ยกเลิกที่แอบนับ
+            firebase.database().ref(`users/${uid}/gaming_mode/suspect_response`).set('reject');
+
+            showToast(`❌ ลบการบันทึกลับของ ${appName} แล้ว`);
+        }
+    });
+};
+
+window.addNotification = function (icon, title, body, color) {
+    color = color || "var(--text-main)";
+    const now = new Date();
+    const time = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    _notifList.unshift({ icon, title, body, color, time, read: false });
+    _saveNotifs();
+    _updateBellBadge();
+    if (_notifPanelOpen) _renderNotifPanel();
+
+    // แจ้งเตือนแบบ In-App Popup โผล่ตรงกระดิ่ง
+    showBellPopup(icon, title, body, color);
+};
+
+window.toggleNotifPanel = function () {
+    const panel = document.getElementById("notif-panel");
+    if (!panel) return;
+    _notifPanelOpen = !_notifPanelOpen;
+    panel.style.display = _notifPanelOpen ? "flex" : "none";
+    if (_notifPanelOpen) {
+        _notifList.forEach(n => n.read = true);
+        _saveNotifs();
+        _updateBellBadge();
+        _renderNotifPanel();
+    }
+};
+
+window.clearNotifs = function () {
+    _notifList = [];
+    _saveNotifs();
+    _updateBellBadge();
+    _renderNotifPanel();
+};
+
+document.addEventListener("click", function (e) {
+    const panel = document.getElementById("notif-panel");
+    const bell = document.getElementById("notif-bell-btn");
+    if (panel && bell && !panel.contains(e.target) && !bell.contains(e.target)) {
+        panel.style.display = "none";
+        _notifPanelOpen = false;
+    }
+});
+
+auth.onAuthStateChanged(function (userState2) {
+    if (userState2) {
+        const bell = document.getElementById("notif-bell-btn");
+        if (bell) bell.style.display = "flex";
+        _updateBellBadge();
+    }
+});
+
+// 🎮 Gaming notification hooks
+let _lastGameNotifKey = "";
+window._onGamingStart = function (gameName) {
+    if (gameName === _lastGameNotifKey) return;
+    _lastGameNotifKey = gameName;
+    window.addNotification("🎮", `เริ่มเล่น: ${gameName}`, "แอปพลิเคชันเข้าสู่โหมดเกมมิ่งเรียบร้อยแล้ว", "var(--red)");
+};
+window._onGamingStop = function (lastGame, lastMins, lastCost) {
+    _lastGameNotifKey = "";
+    if (lastGame) {
+        window.addNotification("🏁", `จบเกม: ${lastGame}`, `ใช้เวลา ${lastMins} นาที — ค่าไฟ ฿${Number(lastCost || 0).toFixed(2)}`, "var(--yellow)");
+    }
 };
 
 // =====================================================
@@ -973,4 +1307,3 @@ window.cancelTimer = () => {
     const initialTheme = localStorage.getItem('recharge_theme') || 'dark';
     document.body.setAttribute('data-theme', initialTheme);
 })();
-
