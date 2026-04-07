@@ -1180,6 +1180,7 @@ window._resolveSuspect = function (idx, isGame) {
         db.ref(`users/${uid}/ai_settings/custom_games/${safeKey}`).set(gameName);
         // 2. ส่งคำสั่ง confirm ไป Python → Python จะย้าย pending data มาแสดง
         db.ref(`users/${uid}/gaming_mode/suspect_response`).set('confirm');
+        db.ref(`users/${uid}/gaming_mode/suspect`).set(null);
         n.resolved = 'yes';
         n.body = `จำไว้แล้วว่า ${gameName} เป็นเกม — แสดงข้อมูลทันที`;
         showToast(`✅ ระบบเรียนรู้แล้วว่า ${gameName} คือเกม!`);
@@ -1187,6 +1188,7 @@ window._resolveSuspect = function (idx, isGame) {
         // ❌ ส่งคำสั่ง reject ไป Python → Python จะลบข้อมูลลับทิ้งทั้งหมด
         db.ref(`users/${uid}/ai_settings/ignored_games/${safeKey}`).set(true);
         db.ref(`users/${uid}/gaming_mode/suspect_response`).set('reject');
+        db.ref(`users/${uid}/gaming_mode/suspect`).set(null);
         n.resolved = 'no';
         n.body = `ลบข้อมูล ${suspectName} แล้ว`;
         showToast(`❌ ลบข้อมูลแล้ว`);
@@ -1230,6 +1232,7 @@ window.markAsGame = function (appName) {
 
             // สั่งให้ python ยกเลิกที่แอบนับ
             firebase.database().ref(`users/${uid}/gaming_mode/suspect_response`).set('reject');
+            firebase.database().ref(`users/${uid}/gaming_mode/suspect`).set(null);
 
             showToast(`❌ ลบการบันทึกลับของ ${appName} แล้ว`);
         }
