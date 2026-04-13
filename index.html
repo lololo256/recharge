@@ -41,9 +41,9 @@
         <div class="theme-switcher-floating">
             <span class="material-symbols-rounded" style="font-size: 18px; color: var(--primary);">palette</span>
             <select id="theme-selector">
-                <option value="dark">🌙 Dark</option>
-                <option value="light">☀️ Light</option>
-                <option value="glass">💎 Glass</option>
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="glass">Glass</option>
             </select>
         </div>
 
@@ -77,7 +77,7 @@
         ">
             <div
                 style="padding: 16px 18px 12px; border-bottom: 1px solid #353b48; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 14px; font-weight: 700;">🔔 การแจ้งเตือน</div>
+                <div style="font-size: 14px; font-weight: 700; display:flex; align-items:center; gap:6px;"><span class="material-symbols-rounded" style="font-size:16px; color:var(--primary);">notifications</span> การแจ้งเตือน</div>
                 <span onclick="clearNotifs()"
                     style="font-size: 11px; color: var(--text-sub); cursor: pointer;">ล้างทั้งหมด</span>
             </div>
@@ -109,68 +109,97 @@
                 <div id="status-dot" class="status-dot"></div>
             </div>
 
+            <!-- 🎮 Gaming Mode Banner (ย้ายขึ้นมาบนสุดตามแผน) -->
+            <div class="gaming-banner" id="gaming-banner">
+                <div class="gaming-icon"><span class="material-symbols-rounded" style="font-size:28px;">sports_esports</span></div>
+                <div style="flex: 1;">
+                    <div style="font-size: 11px; color: var(--red); font-weight: 600; letter-spacing: 1px;">GAMING MODE
+                    </div>
+                    <div style="font-size: 17px; font-weight: 700;" id="gaming-game-name">Unknown Game</div>
+                    <div class="gaming-stats">
+                        <div>
+                            <div class="gaming-stat-val" id="gaming-mins">0.0</div>
+                            <div class="gaming-stat-label">ชม.</div>
+                        </div>
+                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+                        <div>
+                            <div class="gaming-stat-val">฿<span id="gaming-cost">0.00</span></div>
+                            <div class="gaming-stat-label">ค่าไฟแมตช์นี้</div>
+                        </div>
+                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+                        <div id="gaming-watt" style="color:var(--yellow); font-size:18px; font-weight:bold; align-self:center;">
+                            0W
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div class="section-title" style="margin-bottom: 0;"><span class="material-symbols-rounded"
                         style="font-size: 18px;">speed</span> สภาพเครื่องแบบเรียลไทม์</div>
                 <span class="material-symbols-rounded info-icon-card" style="margin-top: -2px;"
-                    onclick="window.showAlertModal({icon: '💡', title: 'การโหลดข้อมูลฮาร์ดแวร์', body: '<b>• CPU:</b> ดึงข้อมูลภาระการประมวลผลผ่าน OS ทุกๆ 1 วินาที<br><br><b>• GPU:</b> ดึงข้อมูล Utilization ผ่าน Driver ตรง อัปเดตทุก 1 วินาที<br><br><b>• RAM:</b> คำนวณจากหน่วยความจำใช้งานจริง ลบส่วน Cached ออก', color: 'var(--primary)'})">info</span>
+                    onclick="window.showAlertModal({icon: '', title: 'การโหลดข้อมูลฮาร์ดแวร์', body: '<b>• CPU:</b> ดึงข้อมูลภาระการประมวลผลผ่าน OS ทุกๆ 1 วินาที<br><br><b>• GPU:</b> ดึงข้อมูล Utilization ผ่าน Driver ตรง อัปเดตทุก 1 วินาที<br><br><b>• RAM:</b> คำนวณจากหน่วยความจำใช้งานจริง ลบส่วน Cached ออก', color: 'var(--primary)'})">info</span>
             </div>
             <div class="dashboard-widgets">
 
-                <div class="widget-box">
-                    <div class="concentric-small">
-                        <svg class="circular-chart-small" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-bg" cx="50" cy="50" r="25"></circle>
-                            <circle class="ring-value cpu-usage-ring" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-value cpu-temp-ring" cx="50" cy="50" r="25"></circle>
+                <div class="widget-box hero-widget">
+                    <div class="concentric-hero">
+                        <svg class="circular-chart-hero" viewBox="0 0 100 100">
+                            <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
+                            <circle class="ring-bg" cx="50" cy="50" r="28"></circle>
+                            <circle class="ring-value cpu-usage-ring hero-ring" cx="50" cy="50" r="42"></circle>
+                            <circle class="ring-value cpu-temp-ring hero-ring-inner" cx="50" cy="50" r="28"></circle>
                         </svg>
-                        <div class="center-text">
-                            <span id="val-cpu">0</span><span class="percent-sign">%</span>
+                        <div class="center-text-hero">
+                            <span id="val-cpu" class="live-val">0</span><span class="percent-sign">%</span>
                         </div>
                     </div>
-                    <div class="widget-label">CPU</div>
-                    <div style="font-size: 9px; color: var(--text-sub); margin-top: 2px;">
-                        <span style="color: #ff4757;">●</span> ใช้ % &nbsp;<span style="color: #ffa502;">●</span> ร้อน
-                        °C
+                    <div class="widget-label">CPU Usage</div>
+                    <div class="hero-legend">
+                        <span class="dot" style="background:var(--red);"></span> ใช้ % 
+                        <span class="dot" style="background:var(--yellow); margin-left:8px;"></span> ร้อน °C
                     </div>
+                    <!-- 💎 Hover Tooltip -->
+                    <div class="hero-tooltip" id="tooltip-cpu">โหลด: 0% | ร้อน: 0°C</div>
                 </div>
 
-                <div class="widget-box">
-                    <div class="concentric-small">
-                        <svg class="circular-chart-small" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-bg" cx="50" cy="50" r="25"></circle>
-
-                            <circle class="ring-value gpu-usage-ring" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-value gpu-temp-ring" cx="50" cy="50" r="25"></circle>
+                <div class="widget-box hero-widget">
+                    <div class="concentric-hero">
+                        <svg class="circular-chart-hero" viewBox="0 0 100 100">
+                            <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
+                            <circle class="ring-bg" cx="50" cy="50" r="28"></circle>
+                            <circle class="ring-value gpu-usage-ring hero-ring" cx="50" cy="50" r="42"></circle>
+                            <circle class="ring-value gpu-temp-ring hero-ring-inner" cx="50" cy="50" r="28"></circle>
                         </svg>
-                        <div class="center-text">
-                            <span id="val-gpu">0</span><span class="percent-sign">%</span>
+                        <div class="center-text-hero">
+                            <span id="val-gpu" class="live-val">0</span><span class="percent-sign">%</span>
                         </div>
                     </div>
-                    <div class="widget-label">GPU</div>
-                    <div style="font-size: 9px; color: var(--text-sub); margin-top: 2px;">
-                        <span style="color: #1e90ff;">●</span> ใช้ % &nbsp;<span style="color: #70a1ff;">●</span> ร้อน
-                        °C
+                    <div class="widget-label">GPU Usage</div>
+                    <div class="hero-legend">
+                        <span class="dot" style="background:var(--blue);"></span> ใช้ % 
+                        <span class="dot" style="background:var(--blue); opacity:0.6; margin-left:8px;"></span> ร้อน °C
                     </div>
+                    <!-- 💎 Hover Tooltip -->
+                    <div class="hero-tooltip" id="tooltip-gpu">โหลด: 0% | ร้อน: 0°C</div>
                 </div>
 
-                <div class="widget-box">
-                    <div class="concentric-small">
-                        <svg class="circular-chart-small" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-
-                            <circle class="ring-value ram-usage-ring" cx="50" cy="50" r="40"></circle>
+                <div class="widget-box hero-widget">
+                    <div class="concentric-hero">
+                        <svg class="circular-chart-hero" viewBox="0 0 100 100">
+                            <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
+                            <circle class="ring-value ram-usage-ring hero-ring" cx="50" cy="50" r="42"></circle>
                         </svg>
-                        <div class="center-text">
-                            <span id="val-ram">0</span><span class="percent-sign">%</span>
+                        <div class="center-text-hero">
+                            <span id="val-ram" class="live-val">0</span><span class="percent-sign">%</span>
                         </div>
                     </div>
-                    <div class="widget-label">RAM</div>
-                    <div style="font-size: 9px; color: var(--text-sub); margin-top: 2px;">
-                        <span style="color: #eccc68;">●</span> ใช้ไป %
+                    <div class="widget-label">RAM Usage</div>
+                    <div class="hero-legend">
+                        <span class="dot" style="background:var(--yellow);"></span> ใช้ไป % 
                     </div>
+                    <!-- 💎 Hover Tooltip -->
+                    <div class="hero-tooltip" id="tooltip-ram">ใช้ไป: 0%</div>
                 </div>
 
             </div>
@@ -178,7 +207,7 @@
             <div class="hw-grid">
                 <div class="card" style="margin:0; padding:15px;">
                     <div class="hw-title" id="hw-cpu-name">CPU Model</div>
-                    <div class="hw-sub skeleton-loader" id="hw-cpu-cores">กำลังโหลด...</div>
+                    <div class="hw-sub skeleton-loader" id="hw-gpu-info">กำลังโหลด...</div>
                     <div class="hw-bar-bg">
                         <div class="hw-bar-fill" id="bar-cpu-temp" style="width: 0%; background: var(--primary);"></div>
                         <span class="hw-val-right" id="val-cpu-temp">0°C</span>
@@ -191,7 +220,7 @@
                             <div class="hw-sub" id="hw-avg-watt">เฉลี่ย 0W</div>
                         </div>
                         <span class="material-symbols-rounded info-icon-card" style="margin-top: -2px;"
-                            onclick="window.showAlertModal({icon: '⚡', title: 'อัลกอริทึมคำนวณค่าไฟ', body: 'เพื่อความแม่นยำสูงสุด อัลกอริทึมระบบอ้างอิงโครงสร้างมาจากเว็บคำนวณระดับโลกอย่าง Outervision Power Supply Calculator แม้ซอฟต์แวร์จะเจาะดู Hardware ทุกชิ้นไม่ได้ แต่เราใช้หลักการทำ Hardware Profiling โดยให้ผู้ใช้กำหนดสเปคอุปกรณ์ภายนอกไว้ล่วงหน้า แล้วนำมารวมกับโหลด CPU/GPU ที่แปรผันแบบ Real-time จากนั้นคูณชดเชยค่า PSU Efficiency Loss 15% วิธีนี้ทำให้เราได้ค่า Wall Power (ไฟที่ดึงจากปลั๊กจริงๆ) ที่แม่นยำที่สุดเท่าที่ Software-only solution จะทำได้ครับ', color: 'var(--yellow)'})">info</span>
+                            onclick="window.showAlertModal({icon: '', title: 'อัลกอริทึมคำนวณค่าไฟ', body: 'เพื่อความแม่นยำสูงสุด อัลกอริทึมระบบอ้างอิงโครงสร้างมาจากเว็บคำนวณระดับโลกอย่าง Outervision Power Supply Calculator แม้ซอฟต์แวร์จะเจาะดู Hardware ทุกชิ้นไม่ได้ แต่เราใช้หลักการทำ Hardware Profiling โดยให้ผู้ใช้กำหนดสเปคอุปกรณ์ภายนอกไว้ล่วงหน้า แล้วนำมารวมกับโหลด CPU/GPU ที่แปรผันแบบ Real-time จากนั้นคูณชดเชยค่า PSU Efficiency Loss 15% วิธีนี้ทำให้เราได้ค่า Wall Power (ไฟที่ดึงจากปลั๊กจริงๆ) ที่แม่นยำที่สุดเท่าที่ Software-only solution จะทำได้ครับ', color: 'var(--yellow)'})">info</span>
                     </div>
                     <div class="hw-bar-bg">
                         <div class="hw-bar-fill" id="bar-watt" style="width: 0%; background: var(--blue);"></div>
@@ -209,10 +238,12 @@
                     </div>
                 </div>
                 <div class="card" style="margin:0; padding:15px; border-left: 3px solid var(--primary);">
-                    <div class="hw-title">พื้นที่ว่าง (Drive C:)</div>
-                    <div class="hw-sub"
-                        style="margin-top: 5px; font-size: 16px; font-weight: bold; color: var(--text-main);">
-                        <span id="val-storage">0.0</span> GB
+                    <div class="hw-title">ความจุ Drive C:</div>
+                    <div class="hw-sub" style="margin-top: 5px; font-size: 16px; font-weight: bold; color: var(--text-main); display:flex; justify-content:space-between; align-items:center;">
+                        <span id="val-storage">0.0</span> <span style="font-size:10px; opacity:0.6;">GB Free</span>
+                    </div>
+                    <div class="hw-bar-bg" style="margin-top:5px;">
+                        <div class="hw-bar-fill" id="bar-storage" style="width: 0%; background: var(--primary);"></div>
                     </div>
                 </div>
             </div>
@@ -240,19 +271,19 @@
                 <div class="section-title" style="margin-bottom: 0;"><span class="material-symbols-rounded"
                         style="font-size: 18px;">bolt</span> สรุปค่าไฟฟ้า (อิงจากวัตต์รวมจริงของระบบ)</div>
                 <span class="material-symbols-rounded info-icon-card" style="margin-top: -2px;"
-                    onclick="window.showAlertModal({icon: '⚡', title: 'อัลกอริทึมคำนวณค่าไฟ', body: 'เพื่อความแม่นยำสูงสุด อัลกอริทึมระบบอ้างอิงโครงสร้างมาจากเว็บคำนวณระดับโลกอย่าง Outervision Power Supply Calculator แม้ซอฟต์แวร์จะเจาะดู Hardware ทุกชิ้นไม่ได้ แต่เราใช้หลักการทำ Hardware Profiling โดยให้ผู้ใช้กำหนดสเปคอุปกรณ์ภายนอกไว้ล่วงหน้า แล้วนำมารวมกับโหลด CPU/GPU ที่แปรผันแบบ Real-time จากนั้นคูณชดเชยค่า PSU Efficiency Loss 15% วิธีนี้ทำให้เราได้ค่า Wall Power (ไฟที่ดึงจากปลั๊กจริงๆ) ที่แม่นยำที่สุดเท่าที่ Software-only solution จะทำได้ครับ<br><br><b>• ระบบบันทึกข้อมูล:</b> ใช้ค่าเฉลี่ยพลังงานแบบ Exponential Moving Average (EMA) เพื่อหักล้างความผันผวน และบันทึกยอดสะสมขึ้น Cloud <b>ทุกๆ 1 นาที</b> เพื่อป้องกันข้อมูลหล่นหาย', color: 'var(--yellow)'})">info</span>
+                    onclick="window.showAlertModal({icon: '', title: 'อัลกอริทึมคำนวณค่าไฟ', body: 'เพื่อความแม่นยำสูงสุด อัลกอริทึมระบบอ้างอิงโครงสร้างมาจากเว็บคำนวณระดับโลกอย่าง Outervision Power Supply Calculator แม้ซอฟต์แวร์จะเจาะดู Hardware ทุกชิ้นไม่ได้ แต่เราใช้หลักการทำ Hardware Profiling โดยให้ผู้ใช้กำหนดสเปคอุปกรณ์ภายนอกไว้ล่วงหน้า แล้วนำมารวมกับโหลด CPU/GPU ที่แปรผันแบบ Real-time จากนั้นคูณชดเชยค่า PSU Efficiency Loss 15% วิธีนี้ทำให้เราได้ค่า Wall Power (ไฟที่ดึงจากปลั๊กจริงๆ) ที่แม่นยำที่สุดเท่าที่ Software-only solution จะทำได้ครับ<br><br><b>• ระบบบันทึกข้อมูล:</b> ใช้ค่าเฉลี่ยพลังงานแบบ Exponential Moving Average (EMA) เพื่อหักล้างความผันผวน และบันทึกยอดสะสมขึ้น Cloud <b>ทุกๆ 1 นาที</b> เพื่อป้องกันข้อมูลหล่นหาย', color: 'var(--yellow)'})">info</span>
             </div>
             <div class="hw-grid">
-                <div class="card"
-                    style="margin:0; padding:15px; background: rgba(32, 201, 151, 0.1); border: 1px solid var(--primary);">
+                <div class="card card-highlight-primary"
+                    style="margin:0; padding:15px;">
                     <div style="font-size: 12px; color: var(--primary);">ค่าไฟวันนี้</div>
                     <div style="font-size: 28px; font-weight: 700; color: var(--primary);">฿<span
                             id="costTodayVal">0.00</span></div>
                     <div style="font-size: 11px; color: var(--text-sub);">ใช้งาน <span id="timeTodayVal"
                             style="color:var(--text-main); font-weight:bold;">0.0</span> ชม.</div>
                 </div>
-                <div class="card"
-                    style="margin:0; padding:15px; background: rgba(241, 196, 15, 0.1); border: 1px solid var(--yellow);">
+                <div class="card card-highlight-yellow"
+                    style="margin:0; padding:15px;">
                     <div style="font-size: 12px; color: var(--yellow);">ค่าไฟสะสมเดือนนี้</div>
                     <div style="font-size: 28px; font-weight: 700; color: var(--yellow);">฿<span
                             id="costMonthVal">0.00</span></div>
@@ -281,31 +312,6 @@
                 </div>
             </div>
 
-            <!-- Feature 2: Gaming Mode Banner -->
-            <div class="gaming-banner" id="gaming-banner">
-                <div class="gaming-icon">🎮</div>
-                <div style="flex: 1;">
-                    <div style="font-size: 11px; color: var(--red); font-weight: 600; letter-spacing: 1px;">GAMING MODE
-                    </div>
-                    <div style="font-size: 17px; font-weight: 700;" id="gaming-game-name">Unknown Game</div>
-                    <div class="gaming-stats">
-                        <div>
-                            <div class="gaming-stat-val" id="gaming-mins">0.0</div>
-                            <div class="gaming-stat-label">ชม.</div>
-                        </div>
-                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
-                        <div>
-                            <div class="gaming-stat-val">฿<span id="gaming-cost">0.00</span></div>
-                            <div class="gaming-stat-label">ค่าไฟแมตช์นี้</div>
-                        </div>
-                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
-                        <div>
-                            <div class="gaming-stat-val" id="gaming-watt">0W</div>
-                            <div class="gaming-stat-label">พลังงาน</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="section-title" style="margin-top: 5px;"><span class="material-symbols-rounded"
                     style="font-size: 18px;">settings_remote</span> รีโมทควบคุมคอมพิวเตอร์</div>
@@ -351,7 +357,7 @@
 
                 <div id="timer-display"
                     style="margin-top: 15px; font-size: 13px; color: var(--blue); font-weight: 600; display: none; background: rgba(52, 152, 219, 0.1); padding: 12px; border-radius: 10px; text-align: center;">
-                    ⏳ คอมพิวเตอร์จะปิดเครื่องในอีก: <span id="timer-countdown"
+                    <span class="material-symbols-rounded" style="font-size:16px; vertical-align:-3px;">timer</span> คอมพิวเตอร์จะปิดเครื่องในอีก: <span id="timer-countdown"
                         style="font-size: 24px; margin-left: 8px; font-weight: 700;">00:00</span>
                 </div>
             </div>
@@ -361,7 +367,7 @@
             <!-- 💡 AI Energy Insight — แสดงเมื่อทิ้งคอมไว้โดยไม่ใช้งาน -->
             <div id="insight-banner"
                 style="display:none; background:rgba(241,196,15,0.15); border:1px solid var(--yellow); border-radius:14px; padding:16px; margin-top:20px; align-items:flex-start; gap:12px; animation:fadeIn 0.5s ease;">
-                <div style="font-size:28px; line-height:1;">💡</div>
+                <div style="font-size:28px; line-height:1;"><span class="material-symbols-rounded" style="font-size:28px; color:var(--yellow);">lightbulb</span></div>
                 <div>
                     <div style="font-size:13px; font-weight:700; color:var(--yellow); margin-bottom:4px;">AI Energy
                         Insight</div>
@@ -407,7 +413,7 @@
                             class="material-symbols-rounded" style="font-size: 16px;">memory</span> CPU Usage</div>
                     <span class="material-symbols-rounded info-icon-card"
                         style="margin-top: -2px; font-size: 16px !important;"
-                        onclick="window.showAlertModal({icon: '📊', title: 'กราฟ CPU', body: 'เก็บข้อมูลและบันทึกประวัติการทำงานขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--primary)'})">info</span>
+                        onclick="window.showAlertModal({icon: '', title: 'กราฟ CPU', body: 'เก็บข้อมูลและบันทึกประวัติการทำงานขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--primary)'})">info</span>
                 </div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-cpu"></canvas></div>
             </div>
@@ -419,7 +425,7 @@
                         Usage</div>
                     <span class="material-symbols-rounded info-icon-card"
                         style="margin-top: -2px; font-size: 16px !important;"
-                        onclick="window.showAlertModal({icon: '📊', title: 'กราฟ GPU & RAM', body: 'เก็บข้อมูลและบันทึกประวัติการทำงานขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--yellow)'})">info</span>
+                        onclick="window.showAlertModal({icon: '', title: 'กราฟ GPU & RAM', body: 'เก็บข้อมูลและบันทึกประวัติการทำงานขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--yellow)'})">info</span>
                 </div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-ram"></canvas></div>
             </div>
@@ -431,7 +437,7 @@
                         (Watt)</div>
                     <span class="material-symbols-rounded info-icon-card"
                         style="margin-top: -2px; font-size: 16px !important;"
-                        onclick="window.showAlertModal({icon: '📊', title: 'กราฟการใช้พลังงาน', body: 'เก็บข้อมูลและบันทึกประวัติการใช้กำลังไฟเฉลี่ยขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--red)'})">info</span>
+                        onclick="window.showAlertModal({icon: '', title: 'กราฟการใช้พลังงาน', body: 'เก็บข้อมูลและบันทึกประวัติการใช้กำลังไฟเฉลี่ยขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--red)'})">info</span>
                 </div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-watt"></canvas></div>
             </div>
@@ -443,7 +449,7 @@
                         (°C)</div>
                     <span class="material-symbols-rounded info-icon-card"
                         style="margin-top: -2px; font-size: 16px !important;"
-                        onclick="window.showAlertModal({icon: '📊', title: 'กราฟอุณหภูมิ', body: 'เก็บข้อมูลและบันทึกประวัติอุณหภูมิขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--red)'})">info</span>
+                        onclick="window.showAlertModal({icon: '', title: 'กราฟอุณหภูมิ', body: 'เก็บข้อมูลและบันทึกประวัติอุณหภูมิขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--red)'})">info</span>
                 </div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-temp"></canvas></div>
             </div>
@@ -455,7 +461,7 @@
                         ประวัติอินเทอร์เน็ต (Mbps)</div>
                     <span class="material-symbols-rounded info-icon-card"
                         style="margin-top: -2px; font-size: 16px !important;"
-                        onclick="window.showAlertModal({icon: '📊', title: 'กราฟอินเทอร์เน็ต', body: 'เก็บข้อมูลและบันทึกประวัติความเร็วเครือข่ายโหลด/อัปโหลดขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--purple)'})">info</span>
+                        onclick="window.showAlertModal({icon: '', title: 'กราฟอินเทอร์เน็ต', body: 'เก็บข้อมูลและบันทึกประวัติความเร็วเครือข่ายโหลด/อัปโหลดขึ้น Cloud ระบบใน<b>ทุกๆ 5 นาที</b>', color: 'var(--purple)'})">info</span>
                 </div>
                 <div style="position: relative; height: 150px; width: 100%;"><canvas id="chart-net"></canvas></div>
             </div>
@@ -522,6 +528,47 @@
                     <div id="gaming-days-list"></div>
                 </div>
 
+                <!-- ===== ส่วนที่ 3: สถิติโปรแกรม (App History) ===== -->
+                <div style="border-top: 2px solid #353b48; margin-top: 10px; padding-top: 24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h2 style="margin:0; display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-rounded" style="font-size:28px; color:var(--blue);">apps</span> สถิติโปรแกรม
+                        </h2>
+                        <div style="display:flex; gap:8px;">
+                            <button class="month-toggle active" id="toggle-app-daily" onclick="showAppTab('daily')">วันนี้</button>
+                            <button class="month-toggle" id="toggle-app-monthly" onclick="showAppTab('monthly')">เดือนนี้</button>
+                        </div>
+                    </div>
+
+                    <!-- ปฏิทินเลือกวัน -->
+                    <div id="app-date-row" style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                        <span style="font-size:13px; color:var(--text-sub);">เลือกวัน:</span>
+                        <input type="date" id="app-date-picker"
+                            style="-webkit-appearance:none; appearance:none; background:var(--primary); color:#1e212b; border:none; border-radius:10px; padding:8px 14px; font-family:'Prompt'; font-size:13px; font-weight:700; cursor:pointer;">
+                    </div>
+
+                    <!-- Summary cards -->
+                    <div class="hw-grid" style="margin-bottom:16px;">
+                        <div class="card" style="margin:0; padding:15px; background:rgba(30, 144, 255, 0.1); border:1px solid var(--blue); text-align:center;">
+                            <div style="font-size:11px; color:var(--text-sub);" id="app-summary-label">เวลาประมวลผลหนัก วันนี้</div>
+                            <div class="game-log-mins" id="app-total-mins" style="font-size: 22px; font-weight: 700;">0.0</div>
+                            <div style="font-size:11px; color:var(--text-sub);">นาที (โดยรวม)</div>
+                        </div>
+                    </div>
+
+                    <!-- รายการโปรแกรม -->
+                    <div class="section-title"><span class="material-symbols-rounded" style="font-size:16px;">list</span> รายละเอียดแยกรายโปรแกรม (เรียงตามนาทีใช้งาน)</div>
+                    <div id="app-list">
+                        <div id="gaming-log-empty">กำลังโหลดข้อมูล...</div>
+                    </div>
+
+                    <!-- Monthly: แยกโปรแกรมในเดือน -->
+                    <div id="app-monthly-days" style="display:none;">
+                        <div class="section-title" style="margin-top:20px;"><span class="material-symbols-rounded" style="font-size:16px;">calendar_month</span> สรุปรายเดือน</div>
+                        <div id="app-monthly-list"></div>
+                    </div>
+                </div>
+
                 <!-- Yearly Summary -->
                 <div style="margin-top:30px; padding-top:20px; border-top:1px solid #353b48;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
@@ -537,12 +584,13 @@
                     <div class="year-total-bar" id="year-total-bar" style="display:none;">
                         <h3><span class="material-symbols-rounded" style="font-size:16px;">summarize</span> รวมทั้งปี
                         </h3>
-                        <div class="year-stat-row"><span>⏱️ ชม.ใช้งานรวม</span><span id="yr-total-hrs">–</span></div>
-                        <div class="year-stat-row"><span>⚡ ค่าไฟรวม</span><span id="yr-total-cost">–</span></div>
-                        <div class="year-stat-row"><span>🔌 พลังงานรวม</span><span id="yr-total-kwh">–</span></div>
-                        <div class="year-stat-row"><span>🎮 ชม.เล่นเกมรวม</span><span id="yr-total-game">–</span></div>
-                        <div class="year-stat-row"><span>🖥️ CPU เฉลี่ยทั้งปี</span><span id="yr-avg-cpu">–</span></div>
-                        <div class="year-stat-row"><span>💾 RAM เฉลี่ยทั้งปี</span><span id="yr-avg-ram">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--primary);">schedule</span> ชม.ใช้งานรวม</span><span id="yr-total-hrs">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--yellow);">bolt</span> ค่าไฟรวม</span><span id="yr-total-cost">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--blue);">electric_meter</span> พลังงานรวม</span><span id="yr-total-kwh">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--red);">sports_esports</span> ชม.เล่นเกมรวม</span><span id="yr-total-game">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--primary);">memory</span> CPU เฉลี่ยทั้งปี</span><span id="yr-avg-cpu">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--purple);">memory_alt</span> RAM เฉลี่ยทั้งปี</span><span id="yr-avg-ram">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--red);">local_fire_department</span> 5 แอปยอดฮิตแห่งปี</span><span id="yr-top-apps" style="font-size:10px; text-align:right;">–</span></div>
                     </div>
                     <div id="summary-loading">กำลังโหลดข้อมูล...</div>
                     <div id="monthly-summary-list"></div>
@@ -657,14 +705,18 @@
             <div class="card">
                 <div class="menu-item" style="border:none;">
                     <div style="display: flex; align-items: center;">
-                        <div class="menu-icon" style="background: rgba(231,76,60,0.2); color: var(--red);"><span class="material-symbols-rounded">block</span></div>
+                        <div class="menu-icon" style="background: rgba(231,76,60,0.2); color: var(--red);"><span
+                                class="material-symbols-rounded">block</span></div>
                         <div>
                             <div style="font-weight: 600;">ล้างรายการที่เคยปฏิเสธ</div>
-                            <div style="font-size: 10px; color: var(--text-sub);">โปรแกรมที่เคยกด "ไม่ใช่เกม" จะกลับมาเตือนใหม่ได้</div>
+                            <div style="font-size: 10px; color: var(--text-sub);">โปรแกรมที่เคยกด "ไม่ใช่เกม"
+                                จะกลับมาเตือนใหม่ได้</div>
                         </div>
                     </div>
                 </div>
-                <button onclick="window.clearIgnoreList()" class="btn-reset-pc" style="margin-top: 10px; border-color: var(--yellow); color: var(--yellow);"><span class="material-symbols-rounded">history_toggle_off</span> รีเซ็ตรายการ Ignore List</button>
+                <button onclick="window.clearIgnoreList()" class="btn-reset-pc"
+                    style="margin-top: 10px; border-color: var(--yellow); color: var(--yellow);"><span
+                        class="material-symbols-rounded">history_toggle_off</span> รีเซ็ตรายการ Ignore List</button>
             </div>
 
             <button id="logoutBtn" class="btn-login" style="background: #353b48; margin-top: 20px;"><span
@@ -692,7 +744,7 @@
     <!-- Custom Modal (แทน confirm/alert) -->
     <div id="custom-modal-overlay">
         <div class="custom-modal-box" id="custom-modal-box">
-            <div class="custom-modal-icon" id="modal-icon">❓</div>
+            <div class="custom-modal-icon" id="modal-icon"><span class="material-symbols-rounded" style="font-size:32px;">help</span></div>
             <div class="custom-modal-title" id="modal-title">ยืนยัน</div>
             <div class="custom-modal-body" id="modal-body"></div>
             <div class="custom-modal-btns" id="modal-btns"></div>
@@ -838,6 +890,96 @@
             document.body.style.overflow = '';
         }
     </script>
+    <!-- ===== Onboarding Modal ===== -->
+    <div class="onboarding-overlay" id="onboarding-overlay">
+        <div class="onboarding-modal">
+            <div class="onboarding-title">ตั้งค่าเริ่มต้นการใช้งาน</div>
+            <div class="onboarding-subtitle">กรุณากรอกข้อมูลอุปกรณ์ของคุณเพื่อความแม่นยำ<br>ในการคำนวณค่าไฟและพลังงาน
+            </div>
+
+            <div class="onboarding-field">
+                <div class="onboarding-field-header">
+                    <div class="onboarding-field-icon"
+                        style="background: rgba(32,201,151,0.15); color: var(--primary);">
+                        <span class="material-symbols-rounded">electric_bolt</span>
+                    </div>
+                    <div>
+                        <div class="onboarding-field-title">1) ค่าไฟ (บาท/หน่วย)</div>
+                        <div class="onboarding-field-desc">อัตราค่าไฟบ้านของคุณ (เริ่มต้น 4.5)</div>
+                    </div>
+                </div>
+                <input type="number" id="onboard-unit-price" class="onboarding-input" value="4.5" step="0.1">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div class="onboarding-field" style="margin-bottom: 0;">
+                    <div class="onboarding-field-header">
+                        <div class="onboarding-field-icon"
+                            style="background: rgba(52,152,219,0.15); color: var(--blue);">
+                            <span class="material-symbols-rounded">mode_fan</span>
+                        </div>
+                        <div>
+                            <div class="onboarding-field-title">2) พัดลม</div>
+                            <div class="onboarding-field-desc">จำนวนตัว</div>
+                        </div>
+                    </div>
+                    <input type="number" id="onboard-fan" class="onboarding-input" value="0" min="0">
+                </div>
+
+                <div class="onboarding-field" style="margin-bottom: 0;">
+                    <div class="onboarding-field-header">
+                        <div class="onboarding-field-icon"
+                            style="background: rgba(241,196,15,0.15); color: var(--yellow);">
+                            <span class="material-symbols-rounded">hard_drive</span>
+                        </div>
+                        <div>
+                            <div class="onboarding-field-title">3) ฮาร์ดดิสก์ HDD</div>
+                            <div class="onboarding-field-desc">จำนวนตัว</div>
+                        </div>
+                    </div>
+                    <input type="number" id="onboard-hdd" class="onboarding-input" value="0" min="0">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="onboarding-field" style="margin-bottom: 0;">
+                    <div class="onboarding-field-header">
+                        <div class="onboarding-field-icon"
+                            style="background: rgba(155,89,182,0.15); color: var(--purple);">
+                            <span class="material-symbols-rounded">dns</span>
+                        </div>
+                        <div>
+                            <div class="onboarding-field-title">4) ฮาร์ดดิสก์ SSD</div>
+                            <div class="onboarding-field-desc">จำนวนตัว</div>
+                        </div>
+                    </div>
+                    <input type="number" id="onboard-ssd" class="onboarding-input" value="0" min="0">
+                </div>
+
+                <div class="onboarding-field" style="margin-bottom: 0;">
+                    <div class="onboarding-field-header">
+                        <div class="onboarding-field-icon" style="background: rgba(231,76,60,0.15); color: var(--red);">
+                            <span class="material-symbols-rounded">water_drop</span>
+                        </div>
+                        <div>
+                            <div class="onboarding-field-title">5) ชุดน้ำ (AIO)</div>
+                            <div class="onboarding-field-desc">มีหรือไม่?</div>
+                        </div>
+                    </div>
+                    <select id="onboard-aio" class="onboarding-input">
+                        <option value="0">ไม่มี</option>
+                        <option value="1">มี</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="onboarding-btn" onclick="saveOnboarding()">
+                <span class="material-symbols-rounded">save</span>
+                บันทึกและเริ่มใช้งาน
+            </button>
+        </div>
+    </div>
+
     <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
