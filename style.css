@@ -213,11 +213,10 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
         }
 
-        /* 🔴 Offline Mode Styling */
+        /* 🔴 Offline Mode Styling — ยังกดปุ่มได้แม้ออฟไลน์ (เช่น คัดลอก UID) */
         .offline-mode {
             opacity: 0.5 !important;
             filter: grayscale(0.8) !important;
-            pointer-events: none;
             transition: all 0.5s ease;
         }
 
@@ -1905,7 +1904,8 @@
 
             .notif-bell {
                 top: 12px;
-                right: 100px;
+                right: auto;
+                left: 12px;
                 width: 36px;
                 height: 36px;
             }
