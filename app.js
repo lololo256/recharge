@@ -342,6 +342,54 @@ auth.onAuthStateChanged((user) => {
         });
 
 
+        // =====================================================
+        // ⚡ Instant Status Check — เช็คสถานะทันทีตอนโหลดหน้า
+        // =====================================================
+        let _isFirstMonitorLoad = true;
+
+        function setOfflineUI(msg) {
+            document.getElementById('status-text').innerText = msg || "• ออฟไลน์ (ปิดเครื่อง/โปรแกรมหยุดทำงาน)";
+            document.getElementById('status-text').style.color = "var(--red)";
+            document.getElementById('status-dot').style.background = "var(--red)";
+            document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--red)";
+            const tabHome = document.getElementById('tab-home');
+            if (tabHome) tabHome.classList.add('offline-mode');
+        }
+
+        function setOnlineUI() {
+            document.getElementById('status-text').innerText = "• ออนไลน์เชื่อมต่อแล้ว";
+            document.getElementById('status-text').style.color = "var(--primary)";
+            document.getElementById('status-dot').style.background = "var(--primary)";
+            document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--primary)";
+            const tabHome = document.getElementById('tab-home');
+            if (tabHome) tabHome.classList.remove('offline-mode');
+        }
+
+        // เช็คครั้งแรกแบบ .once() ให้รู้ทันที (ไม่ต้องรอ 15 วินาที)
+        db.ref(`users/${user.uid}/PC_Monitor`).once('value').then((snap) => {
+            const d = snap.val();
+            if (!d) {
+                setOfflineUI("• ยังไม่เคยเชื่อมต่อ — กรุณาเปิดโปรแกรม .exe");
+                return;
+            }
+            if (d.online === false) {
+                setOfflineUI("• โปรแกรมปิดตัว — กรุณาเปิด .exe ใหม่");
+                return;
+            }
+            // เช็คว่าข้อมูลเก่าแค่ไหน (ถ้าเกิน 15 วินาที = น่าจะออฟไลน์)
+            if (d.updated) {
+                const lastUpdate = new Date(d.updated).getTime();
+                const now = Date.now();
+                const ageSeconds = (now - lastUpdate) / 1000;
+                if (ageSeconds > 15) {
+                    setOfflineUI("• ออฟไลน์ (ปิดเครื่อง/โปรแกรมหยุดทำงาน)");
+                    return;
+                }
+            }
+            // ข้อมูลใหม่ → online
+            setOnlineUI();
+        });
+
         db.ref(`users/${user.uid}/PC_Monitor`).on('value', (snap) => {
             const d = snap.val();
 
@@ -349,29 +397,20 @@ auth.onAuthStateChanged((user) => {
                 // ตรวจ online=false เท่านั้น (Python ส่ง status="running" มาทุก update แล้ว)
                 if (d.online === false) {
                     clearTimeout(offlineTimer);
-                    document.getElementById('status-text').innerText = "• โปรแกรมปิดตัว — กรุณาเปิด .exe ใหม่";
-                    document.getElementById('status-text').style.color = "var(--red)";
-                    document.getElementById('status-dot').style.background = "var(--red)";
-                    document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--red)";
+                    setOfflineUI("• โปรแกรมปิดตัว — กรุณาเปิด .exe ใหม่");
                     return;
                 }
 
                 clearTimeout(offlineTimer);
-                document.getElementById('status-text').innerText = "• ออนไลน์เชื่อมต่อแล้ว";
-                document.getElementById('status-text').style.color = "var(--primary)";
-                document.getElementById('status-dot').style.background = "var(--primary)";
-                document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--primary)";
-                const tabHome = document.getElementById('tab-home');
-                if (tabHome) tabHome.classList.remove('offline-mode');
+                setOnlineUI();
 
                 let cpu_usage = d.CPU || 0;
                 let cpu_temp = d.CPU_Temp || 0;
                 let gpu_usage = d.GPU || 0;
                 let gpu_temp = d.GPU_Temp || 0;
-                let ram_usage = d.RAM || 0;
 
-                // 🐛 BUG FIX: ใช้ Storage_C_Percent จริงจาก Python ที่ส่งมาให้แล้ว
-                let storage_percent = d.Storage_C_Percent || 0;
+                // (โค้ดเดิมด้านล่างเหมือนเดิมทุกอย่าง)
+                let ram_usage = d.RAM || 0;
 
                 // 🌟 Update Hero Widgets (Radii 42 for outer, 28 for inner)
                 if (document.getElementById('val-cpu').innerText != cpu_usage) {
@@ -533,14 +572,13 @@ auth.onAuthStateChanged((user) => {
                     }
                 }
 
+                // ⚡ โหลดครั้งแรก: ใช้ timeout สั้น 5 วินาที | หลังจากนั้น: 15 วินาทีตามปกติ
+                const timeoutMs = _isFirstMonitorLoad ? 5000 : 15000;
+                _isFirstMonitorLoad = false;
+
                 offlineTimer = setTimeout(() => {
-                    document.getElementById('status-text').innerText = "• ออฟไลน์ (ปิดเครื่อง/โปรแกรมหยุดทำงาน)";
-                    document.getElementById('status-text').style.color = "var(--red)";
-                    document.getElementById('status-dot').style.background = "var(--red)";
-                    document.getElementById('status-dot').style.boxShadow = "0 0 10px var(--red)";
-                    const tabHome = document.getElementById('tab-home');
-                    if (tabHome) tabHome.classList.add('offline-mode');
-                }, 15000);
+                    setOfflineUI();
+                }, timeoutMs);
             }
         });
 
