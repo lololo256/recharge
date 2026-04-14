@@ -1842,3 +1842,402 @@
             transform: scale(0.97);
             box-shadow: 0 3px 10px rgba(32, 201, 151, 0.2);
         }
+
+        /* ================= Notification Bell (moved from inline) ================= */
+        .notif-bell {
+            position: fixed;
+            top: 20px;
+            right: 130px;
+            z-index: 1001;
+            background: var(--bg-card);
+            border: var(--card-border);
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s;
+        }
+
+        .notif-bell:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        /* ================= Notification Panel (moved from inline) ================= */
+        .notif-panel {
+            position: fixed;
+            top: 70px;
+            right: 16px;
+            z-index: 1002;
+            width: 300px;
+            background: var(--bg-card);
+            border: var(--card-border);
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            max-height: 420px;
+        }
+
+        /* ================= Responsive Mobile — <=600px ================= */
+        @media screen and (max-width: 600px) {
+
+            /* ── Theme Switcher & Notification Bell ── */
+            .theme-switcher-floating {
+                top: 12px;
+                right: 12px;
+                padding: 6px 10px;
+                border-radius: 16px;
+            }
+
+            .theme-switcher-floating select {
+                font-size: 11px;
+            }
+
+            .notif-bell {
+                top: 12px;
+                right: 100px;
+                width: 36px;
+                height: 36px;
+            }
+
+            .notif-bell .material-symbols-rounded {
+                font-size: 19px !important;
+            }
+
+            .notif-panel {
+                right: 8px;
+                left: 8px;
+                width: auto;
+                max-height: 70vh;
+                top: 56px;
+            }
+
+            /* ── Tab Content ── */
+            .tab-content {
+                padding: 14px 12px;
+            }
+
+            /* ── Header Status ── */
+            .header-status {
+                padding: 12px 14px;
+                margin-top: 50px;
+                border-radius: 14px;
+            }
+
+            #pc-name-display {
+                font-size: 16px !important;
+            }
+
+            /* ── Section Title (ป้องกันล้นจอ) ── */
+            .section-title {
+                font-size: 12px;
+                gap: 4px;
+                flex-wrap: wrap;
+            }
+
+            /* ── Dashboard Widgets (CPU/GPU/RAM gauges) ── */
+            .dashboard-widgets {
+                padding: 14px 6px;
+                gap: 4px;
+                border-radius: 14px;
+            }
+
+            .hero-widget {
+                padding: 12px 4px !important;
+                border-radius: 16px !important;
+            }
+
+            .concentric-hero {
+                width: 76px;
+                height: 76px;
+            }
+
+            .center-text-hero span:first-child {
+                font-size: 24px;
+            }
+
+            .widget-label {
+                font-size: 11px;
+                margin-top: 6px;
+            }
+
+            .hero-legend {
+                font-size: 8px;
+                gap: 2px;
+            }
+
+            .hero-legend .dot {
+                width: 5px;
+                height: 5px;
+            }
+
+            .hero-tooltip {
+                font-size: 9px;
+                padding: 3px 8px;
+            }
+
+            /* ── Hardware Grid ── */
+            .hw-grid {
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 16px;
+                border-radius: 16px;
+            }
+
+            /* ── Gaming Banner ── */
+            .gaming-banner {
+                padding: 14px 16px;
+                border-radius: 16px;
+            }
+
+            .gaming-banner.active {
+                gap: 12px;
+                transform: none;
+            }
+
+            .gaming-icon {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+            }
+
+            .gaming-icon .material-symbols-rounded {
+                font-size: 22px !important;
+            }
+
+            .gaming-stats {
+                gap: 12px;
+            }
+
+            .gaming-stat-val {
+                font-size: 16px;
+            }
+
+            #gaming-game-name {
+                font-size: 14px !important;
+            }
+
+            #gaming-watt {
+                font-size: 15px !important;
+            }
+
+            /* ── Remote Control Buttons ── */
+            .ctrl-grid {
+                gap: 10px;
+            }
+
+            .btn-ctrl {
+                padding: 12px;
+                font-size: 12px;
+                border-radius: 10px;
+            }
+
+            .btn-ctrl .material-symbols-rounded {
+                font-size: 22px !important;
+            }
+
+            /* ── Top Apps List ── */
+            .top-app-name {
+                max-width: 130px;
+                font-size: 12px;
+            }
+
+            .top-app-cpu {
+                font-size: 11px;
+            }
+
+            .top-app-item {
+                padding: 8px 10px;
+                border-radius: 8px;
+            }
+
+            /* ── Kill Button ── */
+            .kill-btn {
+                width: 26px;
+                height: 26px;
+                border-radius: 6px;
+            }
+
+            .kill-btn .material-symbols-rounded {
+                font-size: 14px !important;
+            }
+
+            /* ── Info Icons ── */
+            .info-icon-card {
+                font-size: 16px !important;
+            }
+
+            /* ── Timer Section ── */
+            #timer-display {
+                font-size: 12px !important;
+                padding: 10px !important;
+            }
+
+            #timer-countdown {
+                font-size: 20px !important;
+            }
+
+            /* ── History Tab ── */
+            .hw-grid[style*="grid-template-columns: 1fr 1fr 1fr"] {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            /* ── Chart Cards ── */
+            .card canvas {
+                max-height: 120px;
+            }
+
+            /* ── Monthly Summary ── */
+            .ym-stats-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 6px;
+            }
+
+            .ym-stat-val {
+                font-size: 14px;
+            }
+
+            .ym-stat-label {
+                font-size: 9px;
+            }
+
+            /* ── Bottom Navigation ── */
+            .bottom-nav {
+                padding: 8px 12px;
+                border-top-left-radius: 16px;
+                border-top-right-radius: 16px;
+            }
+
+            .nav-item {
+                padding: 5px 12px;
+                font-size: 10px;
+            }
+
+            .nav-icon .material-symbols-rounded {
+                font-size: 22px;
+            }
+
+            /* ── Alert Toasts ── */
+            #alert-container {
+                width: 96%;
+                max-width: 360px;
+            }
+
+            .alert-toast {
+                padding: 10px 12px;
+                border-radius: 12px;
+            }
+
+            .alert-toast-icon {
+                font-size: 22px;
+            }
+
+            /* ── Custom Modal ── */
+            .custom-modal-box {
+                padding: 24px 20px;
+                border-radius: 20px;
+                max-width: 320px;
+            }
+
+            /* ── Install Sheet ── */
+            .install-sheet {
+                border-radius: 20px 20px 0 0;
+            }
+
+            /* ── Settings ── */
+            .menu-item {
+                padding: 12px 0;
+            }
+
+            .menu-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                margin-right: 10px;
+            }
+
+            /* ── Daily Lookup ── */
+            #daily-lookup-card {
+                padding: 16px !important;
+            }
+
+            /* ── Year Total Bar ── */
+            .year-total-bar {
+                padding: 14px;
+            }
+
+            .year-stat-row {
+                font-size: 12px;
+            }
+
+            /* ── Electricity Cost Cards ── */
+            .card-highlight-primary,
+            .card-highlight-yellow {
+                border-radius: 16px;
+            }
+
+            /* ── Onboarding Modal ── */
+            .onboarding-modal {
+                padding: 24px 20px;
+                width: 94%;
+            }
+
+            .onboarding-field {
+                padding: 12px;
+            }
+
+            .onboarding-title {
+                font-size: 18px;
+            }
+        }
+
+        /* ================= Responsive Small Mobile — <=380px ================= */
+        @media screen and (max-width: 380px) {
+
+            .concentric-hero {
+                width: 64px;
+                height: 64px;
+            }
+
+            .center-text-hero span:first-child {
+                font-size: 20px;
+            }
+
+            .widget-label {
+                font-size: 10px;
+            }
+
+            .hero-legend {
+                display: none;
+            }
+
+            .dashboard-widgets {
+                padding: 10px 4px;
+            }
+
+            .header-status {
+                margin-top: 44px;
+            }
+
+            .top-app-name {
+                max-width: 100px;
+            }
+
+            .gaming-icon {
+                display: none;
+            }
+        }
