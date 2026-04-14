@@ -223,10 +223,10 @@
         .status-dot {
             width: 10px;
             height: 10px;
-            background: var(--primary);
+            background: var(--yellow);
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 10px var(--primary);
+            box-shadow: 0 0 10px var(--yellow);
             transition: 0.3s;
         }
 
