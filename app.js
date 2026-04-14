@@ -848,8 +848,70 @@ auth.onAuthStateChanged((user) => {
             document.getElementById('timeMonthVal').innerText = `${Math.floor(mTm / 60)}.${Math.floor(mTm % 60).toString().padStart(2, '0')}`;
         });
 
+        // =====================================================
+        // 📊 Daily Summary Lookup (เลือกดูย้อนหลังแต่ละวัน)
+        // =====================================================
+        const dailyLookupPicker = document.getElementById('daily-lookup-date');
+        // ตั้งค่าเริ่มต้นเป็น "เมื่อวาน"
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+        dailyLookupPicker.value = yStr;
+        fetchDailySummary(user.uid, yStr);
+
+        dailyLookupPicker.addEventListener('change', (e) => {
+            fetchDailySummary(user.uid, e.target.value);
+        });
     }
 });
+
+function fetchDailySummary(uid, dateStr) {
+    const resultDiv = document.getElementById('daily-lookup-result');
+    resultDiv.innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-sub);">⏳ กำลังโหลดข้อมูล...</div>';
+
+    const db = firebase.database();
+    db.ref(`users/${uid}/daily_summary/${dateStr}`).once('value').then((snap) => {
+        const d = snap.val();
+
+        // Format the display date nicely
+        const parts = dateStr.split('-');
+        const displayDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parts[0]}`;
+
+        if (!d) {
+            resultDiv.innerHTML = `
+                <div style="text-align:center; padding: 16px 0;">
+                    <span class="material-symbols-rounded" style="font-size:36px; color:var(--text-sub); opacity:0.4;">event_busy</span>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">ไม่มีข้อมูลในวันที่ ${displayDate}</div>
+                </div>`;
+            return;
+        }
+
+        const mins = d.session_mins || 0;
+        const hrs = Math.floor(mins / 60);
+        const remMins = Math.floor(mins % 60);
+        const cost = Number(d.cost_thb || 0).toFixed(2);
+        const avgWatt = d.avg_watt || 0;
+
+        resultDiv.innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div style="background:rgba(155,89,182,0.12); border:1px solid rgba(155,89,182,0.3); border-radius:14px; padding:14px; text-align:center;">
+                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px;">เวลาใช้งาน</div>
+                    <div style="font-size:26px; font-weight:700; color:var(--purple);">${hrs}<span style="font-size:14px; opacity:0.7;">ชม.</span> ${remMins}<span style="font-size:14px; opacity:0.7;">นาที</span></div>
+                </div>
+                <div style="background:rgba(241,196,15,0.12); border:1px solid rgba(241,196,15,0.3); border-radius:14px; padding:14px; text-align:center;">
+                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px;">ค่าไฟที่ใช้</div>
+                    <div style="font-size:26px; font-weight:700; color:var(--yellow);">฿${cost}</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.03); border-radius:10px;">
+                <div style="font-size:11px; color:var(--text-sub);"><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">electric_bolt</span>วัตต์เฉลี่ย</div>
+                <div style="font-size:13px; font-weight:600; color:var(--text-main);">${Math.round(avgWatt)} W</div>
+            </div>
+            <div style="text-align:center; margin-top:8px; font-size:10px; color:var(--text-sub);">📅 ข้อมูลของวันที่ ${displayDate}</div>`;
+    }).catch(() => {
+        resultDiv.innerHTML = '<div style="text-align:center; font-size:12px; color:var(--red);">❌ ไม่สามารถโหลดข้อมูลได้</div>';
+    });
+}
 
 // =====================================================
 // 🎮 Gaming Log — daily_game_log / monthly_game_log
@@ -1395,9 +1457,9 @@ function showBellPopup(icon, title, body, color) {
     // สร้าง popup เล็กๆ ลอยลงมาจากกระดิ่ง
     const popup = document.createElement('div');
     popup.style.cssText = `
-                position: fixed; top: 70px; right: 170px; z-index: 9999;
+                position: fixed; top: 60px; right: 12px; z-index: 9999;
                 background: ${color || 'var(--bg-card)'}; border: var(--card-border);
-                border-radius: 12px; padding: 12px 16px; min-width: 250px;
+                border-radius: 12px; padding: 12px 16px; min-width: 220px; max-width: calc(100vw - 24px);
                 box-shadow: 0 10px 30px rgba(0,0,0,0.5);
                 display: flex; gap: 12px; align-items: flex-start;
                 animation: slideToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
