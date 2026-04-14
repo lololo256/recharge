@@ -878,12 +878,25 @@ auth.onAuthStateChanged((user) => {
         // เพราะ PC_Monitor (บรรทัด 467-478) ส่งค่าไฟ real-time ทุก 1 วิ อยู่แล้ว
         // ระบบ daily_summary (ทุก 5 นาที) เขียนทับทำให้ตัวเลขกระตุกถอยหลัง
 
-        // ค่าไฟเดือนนี้ → monthly_summary (เหมือนหน้าสรุปรายปี ✅)
-        db.ref(`users/${user.uid}/monthly_summary/${monthStr2}`).on('value', (snap) => {
-            const m = snap.val();
-            document.getElementById('costMonthVal').innerText = m ? Number(m.total_cost_thb || 0).toFixed(2) : '0.00';
-            let mTm = m ? (m.total_session_mins || 0) : 0;
-            document.getElementById('timeMonthVal').innerText = `${Math.floor(mTm / 60)}.${Math.floor(mTm % 60).toString().padStart(2, '0')}`;
+        // ค่าไฟเดือนนี้ → คำนวณจากผลรวม daily_summary ทุกวัน (แม่นกว่า monthly_summary!)
+        // 🐛 BUG FIX: monthly_summary สะสมแยกอิสระจาก daily_summary ทำให้ยอดเพี้ยน
+        //    เมื่อโปรแกรมรีสตาร์ทหรือ Firebase write ล้มเหลวบางรอบ
+        //    แก้: รวม daily_summary ของทุกวันในเดือนนี้แทน → ตรงเป๊ะเสมอ
+        db.ref(`users/${user.uid}/daily_summary`).on('value', (snap) => {
+            const allDays = snap.val();
+            let totalCost = 0;
+            let totalMins = 0;
+            if (allDays) {
+                Object.keys(allDays).forEach(dateKey => {
+                    // เอาเฉพาะวันที่ขึ้นต้นด้วยเดือนปัจจุบัน (เช่น "2026-04")
+                    if (dateKey.startsWith(monthStr2)) {
+                        totalCost += Number(allDays[dateKey].cost_thb || 0);
+                        totalMins += Number(allDays[dateKey].session_mins || 0);
+                    }
+                });
+            }
+            document.getElementById('costMonthVal').innerText = totalCost.toFixed(2);
+            document.getElementById('timeMonthVal').innerText = `${Math.floor(totalMins / 60)}.${Math.floor(totalMins % 60).toString().padStart(2, '0')}`;
         });
 
         // =====================================================
@@ -1245,21 +1258,42 @@ function loadYearlySummary(year) {
     document.getElementById('monthly-summary-list').innerHTML = '';
     document.getElementById('year-total-bar').style.display = 'none';
 
-    db.ref(`users/${uid}/monthly_summary`)
+    // ดึง daily_summary ด้วยเพื่อคำนวณค่าไฟ + ชั่วโมงให้ตรง (monthly_summary มีบัคสะสมเพี้ยน)
+    const dailyRef = db.ref(`users/${uid}/daily_summary`);
+    const monthlyRef = db.ref(`users/${uid}/monthly_summary`)
         .orderByKey()
         .startAt(String(year))
-        .endAt(String(year) + "\uf8ff")
-        .once('value').then(snap => {
+        .endAt(String(year) + "\uf8ff");
+
+    Promise.all([monthlyRef.once('value'), dailyRef.once('value')]).then(([monthSnap, dailySnap]) => {
         document.getElementById('summary-loading').style.display = 'none';
-        const allMonths = snap.val();
-        if (!allMonths) {
+        const allMonths = monthSnap.val();
+        const allDays = dailySnap.val() || {};
+
+        // รวม daily_summary ตามเดือน ให้ได้ตัวเลขที่ตรงจริงๆ
+        const dailyByMonth = {};
+        Object.keys(allDays).forEach(dateKey => {
+            if (!dateKey.startsWith(String(year))) return;
+            const monthKey = dateKey.substring(0, 7); // "2026-04"
+            if (!dailyByMonth[monthKey]) dailyByMonth[monthKey] = { cost: 0, mins: 0 };
+            dailyByMonth[monthKey].cost += Number(allDays[dateKey].cost_thb || 0);
+            dailyByMonth[monthKey].mins += Number(allDays[dateKey].session_mins || 0);
+        });
+
+        if (!allMonths && Object.keys(dailyByMonth).length === 0) {
             document.getElementById('monthly-summary-list').innerHTML =
                 '<div style="text-align:center;padding:30px;color:var(--text-sub);font-size:13px;">ยังไม่มีข้อมูลสรุปรายเดือน<br><small>ข้อมูลจะเริ่มสะสมหลังโปรแกรม Python รันครบ 1 ชม.</small></div>';
             return;
         }
-        const months = Object.entries(allMonths)
-            .filter(([k]) => k.startsWith(String(year)))
-            .sort((a, b) => b[0].localeCompare(a[0]));
+
+        // รวม key จาก monthly_summary และ daily_summary เพื่อไม่ให้ตกหล่น
+        const allMonthKeys = new Set([
+            ...Object.keys(allMonths || {}),
+            ...Object.keys(dailyByMonth)
+        ]);
+        const months = [...allMonthKeys]
+            .filter(k => k.startsWith(String(year)))
+            .sort((a, b) => b.localeCompare(a));
 
         if (months.length === 0) {
             document.getElementById('monthly-summary-list').innerHTML =
@@ -1269,13 +1303,21 @@ function loadYearlySummary(year) {
 
         let yrHrs = 0, yrCost = 0, yrKwh = 0, yrGame = 0, yrCpuSum = 0, yrRamSum = 0;
         let html = '';
-        months.forEach(([monthKey, m]) => {
-            yrHrs += m.total_session_hrs || 0;
-            yrCost += m.total_cost_thb || 0;
-            yrKwh += m.total_kwh || 0;
-            yrGame += m.game_hrs || 0;
-            yrCpuSum += m.avg_cpu || 0;
-            yrRamSum += m.avg_ram || 0;
+        months.forEach(monthKey => {
+            const m = (allMonths || {})[monthKey] || {};
+            const daily = dailyByMonth[monthKey] || {};
+
+            // ใช้ cost + hours จาก daily_summary (ตรงกว่า monthly_summary)
+            const monthCost = daily.cost || Number(m.total_cost_thb || 0);
+            const monthMins = daily.mins || Number(m.total_session_mins || 0);
+            const monthHrs = Math.round(monthMins / 60 * 10) / 10;
+
+            yrHrs += monthHrs;
+            yrCost += monthCost;
+            yrKwh += Number(m.total_kwh || 0);
+            yrGame += Number(m.game_hrs || 0);
+            yrCpuSum += Number(m.avg_cpu || 0);
+            yrRamSum += Number(m.avg_ram || 0);
 
             const topApps = Object.entries(m.top_apps_count || {})
                 .sort((a, b) => b[1] - a[1]).slice(0, 5)
@@ -1285,11 +1327,11 @@ function loadYearlySummary(year) {
             html += `<div class="year-month-card">
                 <div class="ym-header">
                     <div class="ym-month"><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">calendar_month</span> ${monthName}</div>
-                    <div class="ym-cost">฿${Number(m.total_cost_thb || 0).toFixed(2)}</div>
+                    <div class="ym-cost">฿${monthCost.toFixed(2)}</div>
                 </div>
                 <div class="ym-stats-grid">
                     <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--primary);">${m.total_session_hrs || 0}<small style="font-size:11px;"> ชม.</small></div>
+                        <div class="ym-stat-val" style="color:var(--primary);">${monthHrs}<small style="font-size:11px;"> ชม.</small></div>
                         <div class="ym-stat-label">ใช้งาน</div>
                     </div>
                     <div class="ym-stat">
@@ -1297,7 +1339,7 @@ function loadYearlySummary(year) {
                         <div class="ym-stat-label">เล่นเกม</div>
                     </div>
                     <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--yellow);">${m.total_kwh || 0}<small style="font-size:11px;"> kWh</small></div>
+                        <div class="ym-stat-val" style="color:var(--yellow);">${Number(m.total_kwh || 0).toFixed(2)}<small style="font-size:11px;"> kWh</small></div>
                         <div class="ym-stat-label">พลังงาน</div>
                     </div>
                     <div class="ym-stat">
