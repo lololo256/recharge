@@ -2,7 +2,7 @@
 
 ReCharge คือระบบบริหารจัดการพลังงานและตรวจสอบสถานะคอมพิวเตอร์ระยะไกล (Remote PC Monitoring) แบบครบวงจร พัฒนาขึ้นเพื่อช่วยให้ผู้ใช้สามารถติดตามการทำงานของฮาร์ดแวร์ ควบคุมเครื่องระยะไกล และคำนวณค่าไฟฟ้าที่เกิดขึ้นจากการใช้งานคอมพิวเตอร์ได้อย่างแม่นยำ ผ่าน Web Application ที่เชื่อมต่อกับระบบ Cloud แบบ Real-time
 
-ทดลองใช้งาน Web App: https://lololo256.github.io/recharge
+ทดลองใช้งาน Web App: [https://lololo256.github.io/recharge](https://recharge-psi-sandy.vercel.app/)
 
 ---
 
