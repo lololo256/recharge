@@ -469,17 +469,24 @@ auth.onAuthStateChanged((user) => {
                     insightBanner.style.display = 'none';
                 }
 
-                // Battery (แสดงเฉพาะเมื่อ != 100% หรือไม่ได้เสียบปลั๊ก)
+                // Battery (แสดงเสมอถ้ามีข้อมูลแบตเตอรี่ เช่น โน๊คบุ๊ค)
                 const batPct = d.Battery_Percent;
-                if (batPct != null && batPct < 100) {
-                    const batCard = document.getElementById('battery-card');
+                const batCard = document.getElementById('battery-card');
+                if (batPct != null && batPct !== undefined) {
                     batCard.style.display = 'block';
                     document.getElementById('val-battery').innerText = batPct + '%';
-                    document.getElementById('hw-battery-status').innerText = d.Is_Plugged ? '🔌 กำลังชาร์จ' : '🔋 ใช้แบตเตอรี่';
+                    
+                    let batStatus = d.Is_Plugged ? '🔌 กำลังชาร์จ' : '🔋 ใช้แบตเตอรี่';
+                    if (batPct >= 100 && d.Is_Plugged) batStatus = '🔌 เสียบปลั๊กอยู่ (เต็ม)';
+                    
+                    document.getElementById('hw-battery-status').innerText = batStatus;
                     document.getElementById('hw-battery-status').classList.remove('skeleton-loader');
+                    
                     const bar = document.getElementById('bar-battery');
                     bar.style.width = batPct + '%';
                     bar.style.background = batPct < 20 ? 'var(--red)' : batPct < 50 ? 'var(--yellow)' : 'var(--primary)';
+                } else {
+                    if (batCard) batCard.style.display = 'none';
                 }
 
                 // ⏳ อัปเดตตัวเลขเวลานับถอยหลัง
@@ -521,7 +528,7 @@ auth.onAuthStateChanged((user) => {
                     d.Top_Apps.forEach(app => {
                         // 🐛 BUG FIX #10: Escape ชื่อแอปป้องกัน XSS
                         const safeName = (app.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-                        const displayName = (app.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        const displayName = (app.name || '').replace(/\.exe/gi, '').replace(/_exe/gi, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
                         const ramText = app.ram_gb !== undefined ? ` | <span style="font-size:11px; color:var(--text-sub);">${app.ram_gb.toFixed(1)}GB</span>` : '';
                         appsHtml += `
                         <div class="top-app-item">
@@ -546,7 +553,7 @@ auth.onAuthStateChanged((user) => {
                     d.Top_RAM_Apps.forEach(app => {
                         // 🐛 BUG FIX #10: Escape ชื่อแอปป้องกัน XSS
                         const safeName = (app.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-                        const displayName = (app.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        const displayName = (app.name || '').replace(/\.exe/gi, '').replace(/_exe/gi, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
                         ramHtml += `
                         <div class="top-app-item">
                             <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">terminal</span> ${displayName}</div>
@@ -642,7 +649,7 @@ auth.onAuthStateChanged((user) => {
             if (g && g.active) {
                 document.body.classList.add('gaming-active');
                 banner.classList.add('active');
-                document.getElementById('gaming-game-name').innerText = g.game || 'Unknown Game';
+                document.getElementById('gaming-game-name').innerText = (g.game || 'Unknown Game').replace(/\.exe/gi, '').replace(/_exe/gi, '');
                 
                 let tM = g.session_mins || 0;
                 document.getElementById('gaming-mins').innerText = `${Math.floor(tM / 60)}.${Math.floor(tM % 60).toString().padStart(2, '0')}`;
@@ -655,7 +662,7 @@ auth.onAuthStateChanged((user) => {
                 if (!_isGamingNotified) {
                     _isGamingNotified = true;
                     if (window.addNotification && !_isFirstGamingLoad) {
-                        window.addNotification("sports_esports", `เข้าสู่โหมดเกม: ${g.game}`, "ระบบกำลังติดตามการใช้พลังงานแบบเข้มข้น...", "var(--red)");
+                        window.addNotification("sports_esports", `เข้าสู่โหมดเกม: ${(g.game || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}`, "ระบบกำลังติดตามการใช้พลังงานแบบเข้มข้น...", "var(--red)");
                     }
                 }
                 _lastGameEndKey = '';  
@@ -672,7 +679,7 @@ auth.onAuthStateChanged((user) => {
                         // 🌟 แก้ไข: ย้ายจาก showAlertToast (แจ้งเตือนกลางจอ) ไปไว้ที่กระดิ่งแทน
                         if (window.addNotification && !_isFirstGamingLoad) {
                             window.addNotification(
-                                "flag", `จบเกม: ${g.last_game}`, 
+                                "flag", `จบเกม: ${(g.last_game || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}`, 
                                 `ใช้เวลา ${g.last_mins} นาที — ค่าไฟ ฿${Number(g.last_cost_thb || 0).toFixed(2)}`, 
                                 "var(--yellow)"
                             );
@@ -820,7 +827,7 @@ auth.onAuthStateChanged((user) => {
                         const ramDisplay = app.avg_ram > 0 ? ` | <span style="font-size:11px; opacity:0.8;">${app.avg_ram}GB</span>` : '';
                         appsHtml += `
                         <div class="top-app-item">
-                            <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">apps</span> ${app.name}</div>
+                            <div class="top-app-name"><span class="material-symbols-rounded" style="font-size:16px;">apps</span> ${(app.name || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}</div>
                             <div class="top-app-cpu">รันเฉลี่ย ${app.avg_cpu}%${ramDisplay}</div>
                         </div>`;
                     });
@@ -994,7 +1001,7 @@ function renderGamesList(games, containerEl) {
         const timeStr = hrs > 0 ? `${hrs} ชม. ${mins} นาที` : `${mins} นาที`;
         let cardHtml = `<div class="game-log-card">
             <div class="game-log-title">
-                <span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">sports_esports</span> ${g.name || g}</span>
+                <span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">sports_esports</span> ${(g.name || g || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}</span>
                 <span class="game-log-mins">${timeStr}</span>
             </div>
             <div class="game-log-sub">ค่าไฟ ฿${Number(g.total_cost_thb || 0).toFixed(4)}</div>`;
@@ -1139,7 +1146,7 @@ function renderAppList(apps_dict, containerEl) {
         const timeStr = hrs > 0 ? `${hrs} ชม. ${mins} นาที` : `${mins} นาที`;
         return `<div class="game-log-card" style="padding:12px 16px;">
             <div class="game-log-title">
-                <span style="font-size:13px;"><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">apps</span> ${app.name}</span>
+                <span style="font-size:13px;"><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">apps</span> ${(app.name || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}</span>
                 <span class="game-log-mins" style="color:var(--text-main);">${timeStr}</span>
             </div>
         </div>`;
@@ -1248,31 +1255,42 @@ function initYearSelect() {
 function loadYearlySummary(year) {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    document.getElementById('year-label').innerText = year;
+    const beYear = parseInt(year) + 543;
+    document.getElementById('year-label').innerText = `${year} (พ.ศ. ${beYear})`;
     document.getElementById('summary-loading').style.display = 'block';
     document.getElementById('monthly-summary-list').innerHTML = '';
     document.getElementById('year-total-bar').style.display = 'none';
 
-    // ดึง daily_summary ด้วยเพื่อคำนวณค่าไฟ + ชั่วโมงให้ตรง (monthly_summary มีบัคสะสมเพี้ยน)
+    // ดึง daily_summary และ daily_game_log เพื่อคำนวณค่าไฟ + ชั่วโมงให้ตรง (monthly_summary มีบัคสะสมเพี้ยน)
     const dailyRef = db.ref(`users/${uid}/daily_summary`);
+    const gameLogRef = db.ref(`users/${uid}/daily_game_log`);
     const monthlyRef = db.ref(`users/${uid}/monthly_summary`)
         .orderByKey()
         .startAt(String(year))
         .endAt(String(year) + "\uf8ff");
 
-    Promise.all([monthlyRef.once('value'), dailyRef.once('value')]).then(([monthSnap, dailySnap]) => {
+    Promise.all([monthlyRef.once('value'), dailyRef.once('value'), gameLogRef.once('value')]).then(([monthSnap, dailySnap, gameSnap]) => {
         document.getElementById('summary-loading').style.display = 'none';
         const allMonths = monthSnap.val();
         const allDays = dailySnap.val() || {};
+        const allGameLogs = gameSnap.val() || {};
 
-        // รวม daily_summary ตามเดือน ให้ได้ตัวเลขที่ตรงจริงๆ
+        // รวมรายวันตามเดือน ให้ได้ตัวเลขที่ตรงจริงๆ
         const dailyByMonth = {};
         Object.keys(allDays).forEach(dateKey => {
             if (!dateKey.startsWith(String(year))) return;
             const monthKey = dateKey.substring(0, 7); // "2026-04"
-            if (!dailyByMonth[monthKey]) dailyByMonth[monthKey] = { cost: 0, mins: 0 };
+            if (!dailyByMonth[monthKey]) dailyByMonth[monthKey] = { cost: 0, mins: 0, game_mins: 0 };
             dailyByMonth[monthKey].cost += Number(allDays[dateKey].cost_thb || 0);
             dailyByMonth[monthKey].mins += Number(allDays[dateKey].session_mins || 0);
+        });
+
+        // รวมนาทีเล่นเกมจากรายวัน (เพื่อให้ตรงกับหน้าสถิติเกม)
+        Object.keys(allGameLogs).forEach(dateKey => {
+            if (!dateKey.startsWith(String(year))) return;
+            const monthKey = dateKey.substring(0, 7);
+            if (!dailyByMonth[monthKey]) dailyByMonth[monthKey] = { cost: 0, mins: 0, game_mins: 0 };
+            dailyByMonth[monthKey].game_mins += Number(allGameLogs[dateKey].total_mins || 0);
         });
 
         if (!allMonths && Object.keys(dailyByMonth).length === 0) {
@@ -1302,21 +1320,22 @@ function loadYearlySummary(year) {
             const m = (allMonths || {})[monthKey] || {};
             const daily = dailyByMonth[monthKey] || {};
 
-            // ใช้ cost + hours จาก daily_summary (ตรงกว่า monthly_summary)
+            // ใช้ cost + hours + game_hrs จาก aggregation (ตรงกว่า monthly_summary)
             const monthCost = daily.cost || Number(m.total_cost_thb || 0);
             const monthMins = daily.mins || Number(m.total_session_mins || 0);
             const monthHrs = Math.round(monthMins / 60 * 10) / 10;
+            const monthGameHrs = Math.round((daily.game_mins || (Number(m.game_hrs || 0) * 60)) / 60 * 10) / 10;
 
             yrHrs += monthHrs;
             yrCost += monthCost;
             yrKwh += Number(m.total_kwh || 0);
-            yrGame += Number(m.game_hrs || 0);
+            yrGame += monthGameHrs;
             yrCpuSum += Number(m.avg_cpu || 0);
             yrRamSum += Number(m.avg_ram || 0);
 
             const topApps = Object.entries(m.top_apps_count || {})
                 .sort((a, b) => b[1] - a[1]).slice(0, 5)
-                .map(([name]) => `<span class="ym-app-chip">${name.replace('.exe', '')}</span>`).join('');
+                .map(([name]) => `<span class="ym-app-chip">${name.replace(/\.exe/gi, '').replace(/_exe/gi, '')}</span>`).join('');
 
             const monthName = new Date(monthKey + '-01').toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
             html += `<div class="year-month-card">
@@ -1330,7 +1349,7 @@ function loadYearlySummary(year) {
                         <div class="ym-stat-label">ใช้งาน</div>
                     </div>
                     <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--red);">${m.game_hrs || 0}<small style="font-size:11px;"> ชม.</small></div>
+                        <div class="ym-stat-val" style="color:var(--red);">${monthGameHrs}<small style="font-size:11px;"> ชม.</small></div>
                         <div class="ym-stat-label">เล่นเกม</div>
                     </div>
                     <div class="ym-stat">
@@ -1603,7 +1622,7 @@ window.openGameManageModal = function() {
                 let name = data[key];
                 html += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#292e39; border-radius:10px; margin-bottom:8px;">
-                    <div style="font-size:13px; color:#fff;">${name}</div>
+                    <div style="font-size:13px; color:#fff;">${(name || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}</div>
                     <button class="kill-btn" style="color:var(--red); border-color:var(--red); padding:4px 8px; font-size:12px; width:auto; border-radius:6px;" onclick="removeCustomGame('${key}')">ลบ</button>
                 </div>`;
             }
@@ -1623,7 +1642,7 @@ window.openGameManageModal = function() {
                 let name = key.replace(/_exe$/i, '');
                 html += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#292e39; border-radius:10px; margin-bottom:8px;">
-                    <div style="font-size:13px; color:#fff;">${name}</div>
+                    <div style="font-size:13px; color:#fff;">${(name || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}</div>
                     <button class="kill-btn" style="color:var(--red); border-color:var(--red); padding:4px 8px; font-size:12px; width:auto; border-radius:6px;" onclick="removeIgnoredGame('${key}')">ลบ</button>
                 </div>`;
             }
