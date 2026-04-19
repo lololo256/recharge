@@ -297,7 +297,7 @@
             <!-- Top CPU Apps -->
             <div class="card" style="margin-top: 20px;">
                 <div class="section-title" style="margin-bottom: 15px;"><span class="material-symbols-rounded"
-                        style="color: var(--red);">memory</span> โปรแกรมที่สูบ CPU สูงสุดตอนนี้</div>
+                        style="color: var(--red);">memory</span> แอปพลิเคชันที่ใช้ CPU สูงสุด</div>
                 <div id="top-apps-container">
                     <div style="font-size: 12px; color: var(--text-sub); text-align: center;" class="skeleton-loader">
                         กำลังสแกนระบบ...</div>
@@ -307,7 +307,7 @@
             <!-- Top RAM Apps -->
             <div class="card" style="margin-top: 20px;">
                 <div class="section-title" style="margin-bottom: 15px;"><span class="material-symbols-rounded"
-                        style="color: var(--blue);">memory_alt</span> โปรแกรมที่สูบ RAM สูงสุดตอนนี้</div>
+                        style="color: var(--blue);">memory_alt</span> แอปพลิเคชันที่ใช้ RAM สูงสุด</div>
                 <div id="top-ram-apps-container">
                     <div style="font-size: 12px; color: var(--text-sub); text-align: center;" class="skeleton-loader">
                         กำลังสแกนระบบ...</div>
@@ -716,9 +716,9 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="window.clearIgnoreList()" class="btn-reset-pc"
+                <button onclick="openGameManageModal()" class="btn-reset-pc"
                     style="margin-top: 10px; border-color: var(--yellow); color: var(--yellow);"><span
-                        class="material-symbols-rounded">history_toggle_off</span> รีเซ็ตรายการ Ignore List</button>
+                        class="material-symbols-rounded">checklist_rtl</span> จัดการรายการ AI Game</button>
             </div>
 
             <button id="logoutBtn" class="btn-login" style="background: #353b48; margin-top: 20px;"><span
@@ -877,6 +877,37 @@
                     <div class="step-tip"><i class="fa-solid fa-circle-info"></i> หากต้องการหยุด: Task Manager
                         (Ctrl+Shift+Esc) → หา recharge_sender.exe → End Task</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ===== Game Manage Modal ===== -->
+    <div class="install-overlay" id="game-manage-overlay" onclick="closeGameManageModal(event)">
+        <div class="install-sheet">
+            <div class="install-sheet-handle"></div>
+            <div class="install-sheet-header">
+                <div>
+                    <div style="font-size: 11px; color: var(--yellow); font-weight: 600; letter-spacing: 1px;">MANAGEMENT</div>
+                    <div style="font-size: 17px; font-weight: 700;">จัดการรายการ AI Game</div>
+                </div>
+                <button class="install-close-btn" onclick="closeGameManageModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div style="padding: 14px 20px 6px; font-size:12px; font-weight:700; color:var(--primary); letter-spacing:1px; display:flex; align-items:center; gap:5px;">
+                <span class="material-symbols-rounded" style="font-size:18px;">smart_toy</span> Custom Games (รายการเกมที่บันทึกไว้)
+            </div>
+            <div id="custom-games-list" style="padding: 0 20px;">
+                <!-- แทรกจาก JS -->
+            </div>
+
+            <div style="padding: 14px 20px 6px; font-size:12px; font-weight:700; color:var(--red); letter-spacing:1px; display:flex; align-items:center; gap:5px; margin-top:10px;">
+                <span class="material-symbols-rounded" style="font-size:18px;">visibility_off</span> Ignored Apps (รายการแอปที่ละเว้น)
+            </div>
+            <div id="ignored-games-list" style="padding: 0 20px; margin-bottom: 20px;">
+                <!-- แทรกจาก JS -->
             </div>
         </div>
     </div>
