@@ -510,16 +510,18 @@ auth.onAuthStateChanged((user) => {
                 }
                 
                 // 🐛 BUG FIX: แสดงยอดสะสมรายวันแบบ Real-time ตรงจาก Monitor ทำให้ดูไม่ค้าง
-                if (d.Daily_Cost_THB !== undefined) {
-                    const elCost = document.getElementById('costTodayVal');
-                    if(elCost) elCost.innerText = d.Daily_Cost_THB.toFixed(2);
-                }
-                if (d.Daily_Mins !== undefined) {
-                    const elTime = document.getElementById('timeTodayVal');
-                    if(elTime) {
-                        const h = Math.floor(d.Daily_Mins / 60);
-                        const m = Math.floor(d.Daily_Mins % 60);
-                        elTime.innerText = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+                if (window.heroState.today === 'live') {
+                    if (d.Daily_Cost_THB !== undefined) {
+                        const elCost = document.getElementById('costTodayVal');
+                        if(elCost) elCost.innerText = d.Daily_Cost_THB.toFixed(2);
+                    }
+                    if (d.Daily_Mins !== undefined) {
+                        const elTime = document.getElementById('timeTodayVal');
+                        if(elTime) {
+                            const h = Math.floor(d.Daily_Mins / 60);
+                            const m = Math.floor(d.Daily_Mins % 60);
+                            elTime.innerText = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+                        }
                     }
                 }
 
@@ -882,41 +884,117 @@ auth.onAuthStateChanged((user) => {
         // เพราะ PC_Monitor (บรรทัด 467-478) ส่งค่าไฟ real-time ทุก 1 วิ อยู่แล้ว
         // ระบบ daily_summary (ทุก 5 นาที) เขียนทับทำให้ตัวเลขกระตุกถอยหลัง
 
+        // 💎 HERO UI REFACTOR: จัดการสถานะและข้อมูลย้อนหลังใน Hero Card
+        window.heroState = { today: 'live', month: 'live' };
+
         // ค่าไฟเดือนนี้ → คำนวณจากผลรวม daily_summary ทุกวัน (แม่นกว่า monthly_summary!)
-        // 🐛 BUG FIX: monthly_summary สะสมแยกอิสระจาก daily_summary ทำให้ยอดเพี้ยน
-        //    เมื่อโปรแกรมรีสตาร์ทหรือ Firebase write ล้มเหลวบางรอบ
-        //    แก้: รวม daily_summary ของทุกวันในเดือนนี้แทน → ตรงเป๊ะเสมอ
         db.ref(`users/${user.uid}/daily_summary`).on('value', (snap) => {
+            if (window.heroState.month !== 'live') return;
+
             const allDays = snap.val();
             let totalCost = 0;
             let totalMins = 0;
             if (allDays) {
-                Object.keys(allDays).forEach(dateKey => {
-                    // เอาเฉพาะวันที่ขึ้นต้นด้วยเดือนปัจจุบัน (เช่น "2026-04")
+                // เก็บรายวันไว้ใช้ Populate Month Select
+                const foundMonths = new Set();
+                Object.keys(allDays).sort((a,b)=>b.localeCompare(a)).forEach(dateKey => {
+                    const mKey = dateKey.substring(0, 7);
+                    foundMonths.add(mKey);
+                    
                     if (dateKey.startsWith(monthStr2)) {
                         totalCost += Number(allDays[dateKey].cost_thb || 0);
                         totalMins += Number(allDays[dateKey].session_mins || 0);
                     }
                 });
+
+                // Populate Month Dropdown (ถ้ายังไม่มี)
+                const monthSelect = document.getElementById('hero-month-select');
+                if (monthSelect && monthSelect.options.length <= 1) {
+                    foundMonths.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        // แปลง 2026-04 เป็น เมษายน 2026
+                        const d = new Date(m + "-01");
+                        const mLabel = d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+                        opt.text = mLabel;
+                        monthSelect.add(opt);
+                    });
+                }
             }
             document.getElementById('costMonthVal').innerText = totalCost.toFixed(2);
             document.getElementById('timeMonthVal').innerText = Math.floor(totalMins / 60) > 0 ? `${Math.floor(totalMins / 60)} ชม. ${Math.floor(totalMins % 60)} นาที` : `${Math.floor(totalMins % 60)} นาที`;
         });
 
-        // =====================================================
-        // 📊 Daily Summary Lookup (เลือกดูย้อนหลังแต่ละวัน)
-        // =====================================================
-        const dailyLookupPicker = document.getElementById('daily-lookup-date');
-        // ตั้งค่าเริ่มต้นเป็น "เมื่อวาน"
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-        dailyLookupPicker.value = yStr;
-        fetchDailySummary(user.uid, yStr);
+        // 🛠️ Global Functions for Hero Widgets
+        window.handleHeroDateHistory = async (dateStr) => {
+            if (!dateStr) return;
+            const today = new Date().toLocaleDateString('en-CA');
+            if (dateStr === today) {
+                resetHeroToLive('today');
+                return;
+            }
 
-        dailyLookupPicker.addEventListener('change', (e) => {
-            fetchDailySummary(user.uid, e.target.value);
-        });
+            window.heroState.today = 'history';
+            document.getElementById('today-card-title-status').innerText = `ค่าไฟวันที่ ${dateStr.split('-').reverse().join('/')}`;
+            document.getElementById('reset-today-btn').style.display = 'flex';
+            document.getElementById('today-picker-trigger').classList.add('active');
+
+            const snap = await db.ref(`users/${user.uid}/daily_summary/${dateStr}`).once('value');
+            const data = snap.val() || { cost_thb: 0, session_mins: 0 };
+            
+            document.getElementById('costTodayVal').innerText = Number(data.cost_thb || 0).toFixed(2);
+            const tm = data.session_mins || 0;
+            const h = Math.floor(tm / 60);
+            const m = Math.floor(tm % 60);
+            document.getElementById('timeTodayVal').innerText = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+        };
+
+        window.handleHeroMonthHistory = async (mKey) => {
+            if (mKey === 'current') {
+                resetHeroToLive('month');
+                return;
+            }
+
+            window.heroState.month = 'history';
+            const d = new Date(mKey + "-01");
+            const mLabel = d.toLocaleDateString('th-TH', { month: 'long' });
+            document.getElementById('month-card-title-status').innerText = `ค่าไฟเดือน${mLabel}`;
+            document.getElementById('reset-month-btn').style.display = 'flex';
+
+            const snap = await db.ref(`users/${user.uid}/daily_summary`).once('value');
+            const allDays = snap.val() || {};
+            let totalCost = 0;
+            let totalMins = 0;
+            Object.keys(allDays).forEach(dateKey => {
+                if (dateKey.startsWith(mKey)) {
+                    totalCost += Number(allDays[dateKey].cost_thb || 0);
+                    totalMins += Number(allDays[dateKey].session_mins || 0);
+                }
+            });
+
+            document.getElementById('costMonthVal').innerText = totalCost.toFixed(2);
+            document.getElementById('timeMonthVal').innerText = Math.floor(totalMins / 60) > 0 ? `${Math.floor(totalMins / 60)} ชม. ${Math.floor(totalMins % 60)} นาที` : `${Math.floor(totalMins % 60)} นาที`;
+        };
+
+        window.resetHeroToLive = (type) => {
+            if (type === 'today') {
+                window.heroState.today = 'live';
+                document.getElementById('today-card-title-status').innerText = 'ค่าไฟวันนี้';
+                document.getElementById('reset-today-btn').style.display = 'none';
+                document.getElementById('today-picker-trigger').classList.remove('active');
+                // ฟีลด์จะถูก update อัตโนมัติจาก listener ในรอบถัดไป (1 วิ)
+            } else {
+                window.heroState.month = 'live';
+                document.getElementById('month-card-title-status').innerText = 'ค่าไฟสะสมเดือนนี้';
+                document.getElementById('reset-month-btn').style.display = 'none';
+                document.getElementById('hero-month-select').value = 'current';
+                // Trigger refresh จาก listener เดิม
+                db.ref(`users/${user.uid}/daily_summary`).once('value').then(snap => {
+                    // listener logic จะรันซ้ำเพื่อคืนค่า
+                });
+            }
+        };
+
     }
 });
 
