@@ -12,6 +12,41 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="style.css">
+    <style>
+        .month-filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+        }
+
+        .filter-select {
+            background: #353b48;
+            color: var(--text-main);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-family: 'Prompt';
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .filter-select:focus {
+            box-shadow: 0 0 0 2px var(--primary-low);
+        }
+
+        [data-theme="glass"] .month-filter-row {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+        }
+    </style>
 </head>
 
 <body>
@@ -110,14 +145,13 @@
                             <div class="gaming-stat-val" id="gaming-mins">0.0</div>
                             <div class="gaming-stat-label">ชม.</div>
                         </div>
-                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+                        <div style="width: 1px; border-left: 1px solid var(--text-sub); opacity: 0.2; align-self: stretch;"></div>
                         <div>
                             <div class="gaming-stat-val">฿<span id="gaming-cost">0.00</span></div>
                             <div class="gaming-stat-label">ค่าไฟแมตช์นี้</div>
                         </div>
-                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
-                        <div id="gaming-watt"
-                            style="color:var(--yellow); font-size:18px; font-weight:bold; align-self:center;">
+                        <div style="width: 1px; border-left: 1px solid var(--text-sub); opacity: 0.2; align-self: stretch;"></div>
+                        <div id="gaming-watt" style="color:var(--yellow); font-size:18px; font-weight:bold; align-self:center;">
                             0W
                         </div>
                     </div>
@@ -270,14 +304,14 @@
                     <div style="font-size: 28px; font-weight: 700; color: var(--primary);">฿<span
                             id="costTodayVal">0.00</span></div>
                     <div style="font-size: 11px; color: var(--text-sub);">ใช้งาน <span id="timeTodayVal"
-                            style="color:var(--text-main); font-weight:bold;">0.0</span> ชม.</div>
+                            style="color:var(--text-main); font-weight:bold;">0 ชม. 0 นาที</span></div>
                 </div>
                 <div class="card card-highlight-yellow" style="margin:0; padding:15px;">
                     <div style="font-size: 12px; color: var(--yellow);">ค่าไฟสะสมเดือนนี้</div>
                     <div style="font-size: 28px; font-weight: 700; color: var(--yellow);">฿<span
                             id="costMonthVal">0.00</span></div>
                     <div style="font-size: 11px; color: var(--text-sub);">ใช้งาน <span id="timeMonthVal"
-                            style="color:var(--text-main); font-weight:bold;">0.0</span> ชม.</div>
+                            style="color:var(--text-main); font-weight:bold;">0 ชม. 0 นาที</span></div>
                 </div>
             </div>
 
@@ -575,7 +609,7 @@
                     <div class="section-title"><span class="material-symbols-rounded"
                             style="font-size:16px;">list</span> รายละเอียดแยกรายโปรแกรม (เรียงตามนาทีใช้งาน)</div>
                     <div id="app-list">
-                        <div id="gaming-log-empty">กำลังโหลดข้อมูล...</div>
+                        <div id="app-log-empty">กำลังโหลดข้อมูล...</div>
                     </div>
 
                     <!-- Monthly: แยกโปรแกรมในเดือน -->
@@ -588,7 +622,29 @@
 
                 <!-- Yearly Summary -->
                 <div style="margin-top:30px; padding-top:20px; border-top:1px solid #353b48;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div class="month-filter-row">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-sub);">
+                            <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: -3px; color: var(--primary);">calendar_month</span> รายละเอียดรายเดือน
+                        </div>
+                        <select id="month-select" class="filter-select">
+                            <option value="all">แสดงทุกเดือน</option>
+                            <option value="01">มกราคม</option>
+                            <option value="02">กุมภาพันธ์</option>
+                            <option value="03">มีนาคม</option>
+                            <option value="04">เมษายน</option>
+                            <option value="05">พฤษภาคม</option>
+                            <option value="06">มิถุนายน</option>
+                            <option value="07">กรกฎาคม</option>
+                            <option value="08">สิงหาคม</option>
+                            <option value="09">กันยายน</option>
+                            <option value="10">ตุลาคม</option>
+                            <option value="11">พฤศจิกายน</option>
+                            <option value="12">ธันวาคม</option>
+                        </select>
+                    </div>
+                    <div id="summary-loading">กำลังโหลดข้อมูล...</div>
+                    <div id="monthly-summary-list"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; margin-top:30px;">
                         <div class="section-title" style="margin:0;">
                             <span class="material-symbols-rounded"
                                 style="font-size:18px; color:var(--yellow);">workspace_premium</span>
@@ -598,7 +654,7 @@
                             style="background:#353b48; color:var(--text-main); border:none; border-radius:8px; padding:6px 10px; font-family:'Prompt'; font-size:12px; cursor:pointer;">
                         </select>
                     </div>
-                    <div class="year-total-bar" id="year-total-bar" style="display:none;">
+                    <div class="year-total-bar" id="year-total-bar" style="display:none; margin-top:10px;">
                         <h3><span class="material-symbols-rounded" style="font-size:16px;">summarize</span> รวมทั้งปี
                         </h3>
                         <div class="year-stat-row"><span><span class="material-symbols-rounded"
@@ -624,8 +680,6 @@
                                 5 แอปยอดฮิตแห่งปี</span><span id="yr-top-apps"
                                 style="font-size:10px; text-align:right;">–</span></div>
                     </div>
-                    <div id="summary-loading">กำลังโหลดข้อมูล...</div>
-                    <div id="monthly-summary-list"></div>
                 </div>
             </div>
         </div>
