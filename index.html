@@ -299,39 +299,47 @@
                     onclick="window.showAlertModal({icon: '', title: 'อัลกอริทึมการคำนวณพลังงาน', body: 'เพื่อความแม่นยำสูงสุด ระบบใช้โครงสร้างอัลกอริทึมจาก Outervision Power Supply Calculator โดยประยุกต์ใช้หลักการ <b>Hardware Profiling</b> ผสานกับภาระงาน (Load) ของ CPU และ GPU แบบเรียลไทม์ พร้อมชดเชยค่าความสูญเสียพลังงานของ PSU (Efficiency Loss) อีก 15% เพื่อประมาณการค่า <b>Wall Power</b> (พลังงานที่ดึงจากปลั๊กไฟจริง) ให้ใกล้เคียงความจริงมากที่สุดเท่าที่ซอฟต์แวร์จะทำได้ครับ<br><br><b>• การประมวลผล:</b> ใช้ระบบ Exponential Moving Average (EMA) เพื่อลดความผันผวนของค่าพลังงาน ทำให้ข้อมูลมีความเสถียรและแม่นยำ<br><b>• การบันทึกข้อมูล:</b> ข้อมูลสถานะพื้นฐานอัปเดตแบบเรียลไทม์ทุก <b>1 วินาที</b> และบันทึกยอดสะสม (Checkpoint) ลงในระบบคลาวด์ทุก <b>5 นาที</b> เพื่อความปลอดภัยและเสถียรภาพของข้อมูล', color: 'var(--yellow)'})">info</span>
             </div>
             <div class="hw-grid">
-                <div class="card card-highlight-primary" style="margin:0; padding:15px;">
-                    <div style="font-size: 12px; color: var(--primary);">ค่าไฟวันนี้</div>
+                <!-- Today Widget -->
+                <div class="card card-highlight-primary" style="margin:0; padding:15px; position:relative;">
+                    <div class="hero-card-header">
+                        <div class="hero-card-title" id="today-card-title-status" style="color:var(--primary);">ค่าไฟวันนี้</div>
+                        <div class="hero-controls">
+                            <button id="reset-today-btn" class="reset-live-btn" style="display:none;" onclick="resetHeroToLive('today')">
+                                <span class="material-symbols-rounded">refresh</span> LIVE
+                            </button>
+                            <div class="inline-picker-btn" id="today-picker-trigger" onclick="document.getElementById('hidden-today-input').showPicker()">
+                                <span class="material-symbols-rounded" style="font-size:18px;">calendar_today</span>
+                            </div>
+                            <input type="date" id="hidden-today-input" class="hidden-date-input" onchange="handleHeroDateHistory(this.value)">
+                        </div>
+                    </div>
                     <div style="font-size: 28px; font-weight: 700; color: var(--primary);">฿<span
                             id="costTodayVal">0.00</span></div>
-                    <div style="font-size: 11px; color: var(--text-sub);">ใช้งาน <span id="timeTodayVal"
+                    <div style="font-size: 13px; color: var(--text-sub);">ใช้งาน <span id="timeTodayVal"
                             style="color:var(--text-main); font-weight:bold;">0 ชม. 0 นาที</span></div>
                 </div>
-                <div class="card card-highlight-yellow" style="margin:0; padding:15px;">
-                    <div style="font-size: 12px; color: var(--yellow);">ค่าไฟสะสมเดือนนี้</div>
+
+                <!-- Monthly Widget -->
+                <div class="card card-highlight-yellow" style="margin:0; padding:15px; position:relative;">
+                    <div class="hero-card-header">
+                        <div class="hero-card-title" id="month-card-title-status" style="color:var(--yellow);">ค่าไฟสะสมเดือนนี้</div>
+                        <div class="hero-controls">
+                            <button id="reset-month-btn" class="reset-live-btn" style="display:none; margin-right:5px;" onclick="resetHeroToLive('month')">
+                                <span class="material-symbols-rounded">refresh</span> LIVE
+                            </button>
+                            <select id="hero-month-select" class="month-mini-select" onchange="handleHeroMonthHistory(this.value)">
+                                <option value="current" selected>เดือนปัจจุบัน</option>
+                                <!-- JS will populate past months -->
+                            </select>
+                        </div>
+                    </div>
                     <div style="font-size: 28px; font-weight: 700; color: var(--yellow);">฿<span
                             id="costMonthVal">0.00</span></div>
-                    <div style="font-size: 11px; color: var(--text-sub);">ใช้งาน <span id="timeMonthVal"
+                    <div style="font-size: 13px; color: var(--text-sub);">ใช้งาน <span id="timeMonthVal"
                             style="color:var(--text-main); font-weight:bold;">0 ชม. 0 นาที</span></div>
                 </div>
             </div>
 
-            <!-- 📊 Daily Summary Lookup -->
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px;">
-                <div class="section-title" style="margin-bottom: 0;"><span class="material-symbols-rounded"
-                        style="font-size: 18px;">calendar_month</span> สรุปการใช้งานรายวัน</div>
-            </div>
-            <div class="card" id="daily-lookup-card" style="border-left: 3px solid var(--purple);">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-                    <span style="font-size: 13px; color: var(--text-sub); white-space: nowrap;">เลือกวัน:</span>
-                    <input type="date" id="daily-lookup-date"
-                        style="-webkit-appearance:none; appearance:none; background:var(--purple); color:white; border:none; border-radius:10px; padding:8px 14px; font-family:'Prompt'; font-size:13px; font-weight:700; cursor:pointer; flex:1;">
-                </div>
-                <div id="daily-lookup-result">
-                    <div style="text-align:center; font-size:12px; color:var(--text-sub);">เลือกวันที่เพื่อดูสรุปข้อมูล
-                    </div>
-                </div>
-            </div>
 
             <!-- Top CPU Apps -->
             <div class="card" style="margin-top: 20px;">
