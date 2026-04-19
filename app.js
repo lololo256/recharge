@@ -1293,6 +1293,7 @@ function loadYearlySummary(year) {
             allDays[todayStr] = {
                 ...allDays[todayStr],
                 cost_thb: monitorData.Daily_Cost_THB,
+                total_kwh: monitorData.Daily_KWh || 0,
                 session_mins: monitorData.Daily_Mins || 0
             };
         }
@@ -1302,9 +1303,10 @@ function loadYearlySummary(year) {
         Object.keys(allDays).forEach(dateKey => {
             if (!dateKey.startsWith(String(year))) return;
             const monthKey = dateKey.substring(0, 7); // "2026-04"
-            if (!dailyByMonth[monthKey]) dailyByMonth[monthKey] = { cost: 0, mins: 0, game_mins: 0 };
+            if (!dailyByMonth[monthKey]) dailyByMonth[monthKey] = { cost: 0, mins: 0, kwh: 0, game_mins: 0 };
             dailyByMonth[monthKey].cost += Number(allDays[dateKey].cost_thb || 0);
             dailyByMonth[monthKey].mins += Number(allDays[dateKey].session_mins || 0);
+            dailyByMonth[monthKey].kwh += Number(allDays[dateKey].total_kwh || 0);
         });
 
         // รวมนาทีเล่นเกมจากรายวัน (เพื่อให้ตรงกับหน้าสถิติเกม)
@@ -1348,6 +1350,7 @@ function loadYearlySummary(year) {
             // ใช้ cost + hours + game_hrs จาก aggregation (ตรงกว่า monthly_summary)
             const monthCost = daily.cost || Number(m.total_cost_thb || 0);
             const monthMinsTotal = daily.mins || (Number(m.total_session_mins || 0));
+            const monthKwhTotal = daily.kwh || Number(m.total_kwh || 0);
             
             const monthHrs = Math.floor(monthMinsTotal / 60);
             const monthMins = Math.floor(monthMinsTotal % 60);
@@ -1361,7 +1364,7 @@ function loadYearlySummary(year) {
             yrHrsSum += Math.floor(monthMinsTotal / 60);
             yrMinsSum += Math.floor(monthMinsTotal % 60);
             yrCost += monthCost;
-            yrKwh += Number(m.total_kwh || 0);
+            yrKwh += monthKwhTotal;
             yrGameHrs += monthGameHrs;
             yrGameMins += monthGameMins;
             yrCpuSum += Number(m.avg_cpu || 0);
@@ -1398,7 +1401,7 @@ function loadYearlySummary(year) {
                             <div class="ym-stat-label">เล่นเกม</div>
                         </div>
                         <div class="ym-stat">
-                            <div class="ym-stat-val" style="color:var(--yellow);">${Number(m.total_kwh || 0).toFixed(2)}<small style="font-size:11px;"> kWh</small></div>
+                            <div class="ym-stat-val" style="color:var(--yellow);">${monthKwhTotal.toFixed(2)}<small style="font-size:11px;"> kWh</small></div>
                             <div class="ym-stat-label">พลังงาน</div>
                         </div>
                         <div class="ym-stat">
