@@ -1263,6 +1263,12 @@
         .year-stat-row span:last-child {
             font-weight: 700;
             color: var(--text-main);
+            /* 💎 Fix: Allow wrapping for tags inside stat rows */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 4px;
+            max-width: 65%;
         }
 
         #summary-loading {
@@ -2292,6 +2298,15 @@
 
             .year-stat-row {
                 font-size: 12px;
+                /* 💎 Fix: Allow vertical stack on mobile if content is too wide */
+                flex-wrap: wrap;
+                align-items: flex-start;
+                padding: 10px 0;
+            }
+            .year-stat-row span:last-child {
+                max-width: 100%;
+                justify-content: flex-start;
+                margin-top: 6px;
             }
 
             /* ── Electricity Cost Cards ── */
