@@ -30,12 +30,18 @@
         [data-theme="glass"] {
             --bg-main: transparent;
             --bg-card: rgba(255, 255, 255, 0.12); /* 🌟 Premium Crystal Glass */
+            --bg-card-dark: rgba(0, 0, 0, 0.4); /* 🌟 For secondary panels like notif */
             --bg-nav: rgba(255, 255, 255, 0.85);
             --text-main: #ffffff;
             --text-sub: rgba(255, 255, 255, 0.8);
             --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             --card-border: 1px solid rgba(255, 255, 255, 0.2);
             --backdrop-blur: 25px; /* 🌟 Smoother frosted effect */
+        }
+
+        /* 🌟 Theme-specific overrides for Notif Panel in Glass mode */
+        [data-theme="glass"] .notif-panel {
+            background: var(--bg-card-dark) !important;
         }
 
         /* สำหรับ Background รูปภาพวิว/กราฟิก ในธีม Glass */
@@ -1879,6 +1885,8 @@
             width: 300px;
             background: var(--bg-card);
             border: var(--card-border);
+            backdrop-filter: blur(var(--backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--backdrop-blur));
             border-radius: 20px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.4);
             display: none;
