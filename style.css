@@ -285,6 +285,106 @@
             border: 1px solid rgba(212, 172, 13, 0.4) !important;
         }
 
+        /* 💎 Hero Card Refactoring Styles */
+        .hero-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .hero-card-title {
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hero-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+        }
+        .inline-picker-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-sub);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .inline-picker-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: scale(1.05);
+        }
+        .inline-picker-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        /* Hidden input hack to use button as trigger */
+        .hidden-date-input {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .historical-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            color: var(--text-sub);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+        .reset-live-btn {
+            background: var(--yellow);
+            color: #000;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(241, 196, 15, 0.3);
+        }
+        .reset-live-btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        .reset-live-btn span { font-size: 12px; }
+
+        /* Custom Dropdown Month */
+        .month-mini-select {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: 'Prompt';
+            font-weight: 700;
+            cursor: pointer;
+            outline: none;
+        }
+        .month-mini-select option {
+            background: #1e212b;
+            color: white;
+        }
+
         /* ================= Gauges (วงกลมซ้อน 2 ชั้น) ================= */
         /* จัดเรียง 3 กล่องแนวนอน */
         .dashboard-widgets {
