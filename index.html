@@ -63,7 +63,9 @@
         <div id="notif-panel" class="notif-panel">
             <div
                 style="padding: 16px 18px 12px; border-bottom: 1px solid #353b48; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 14px; font-weight: 700; display:flex; align-items:center; gap:6px;"><span class="material-symbols-rounded" style="font-size:16px; color:var(--primary);">notifications</span> การแจ้งเตือน</div>
+                <div style="font-size: 14px; font-weight: 700; display:flex; align-items:center; gap:6px;"><span
+                        class="material-symbols-rounded"
+                        style="font-size:16px; color:var(--primary);">notifications</span> การแจ้งเตือน</div>
                 <span onclick="clearNotifs()"
                     style="font-size: 11px; color: var(--text-sub); cursor: pointer;">ล้างทั้งหมด</span>
             </div>
@@ -97,7 +99,8 @@
 
             <!-- 🎮 Gaming Mode Banner (ย้ายขึ้นมาบนสุดตามแผน) -->
             <div class="gaming-banner" id="gaming-banner">
-                <div class="gaming-icon"><span class="material-symbols-rounded" style="font-size:28px;">sports_esports</span></div>
+                <div class="gaming-icon"><span class="material-symbols-rounded"
+                        style="font-size:28px;">sports_esports</span></div>
                 <div style="flex: 1;">
                     <div style="font-size: 11px; color: var(--red); font-weight: 600; letter-spacing: 1px;">GAMING MODE
                     </div>
@@ -113,7 +116,8 @@
                             <div class="gaming-stat-label">ค่าไฟแมตช์นี้</div>
                         </div>
                         <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
-                        <div id="gaming-watt" style="color:var(--yellow); font-size:18px; font-weight:bold; align-self:center;">
+                        <div id="gaming-watt"
+                            style="color:var(--yellow); font-size:18px; font-weight:bold; align-self:center;">
                             0W
                         </div>
                     </div>
@@ -142,7 +146,7 @@
                     </div>
                     <div class="widget-label">CPU Usage</div>
                     <div class="hero-legend">
-                        <span class="dot" style="background:var(--red);"></span> ใช้ % 
+                        <span class="dot" style="background:var(--red);"></span> ใช้ %
                         <span class="dot" style="background:var(--yellow); margin-left:8px;"></span> ร้อน °C
                     </div>
                     <!-- 💎 Hover Tooltip -->
@@ -163,7 +167,7 @@
                     </div>
                     <div class="widget-label">GPU Usage</div>
                     <div class="hero-legend">
-                        <span class="dot" style="background:var(--blue);"></span> ใช้ % 
+                        <span class="dot" style="background:var(--blue);"></span> ใช้ %
                         <span class="dot" style="background:var(--blue); opacity:0.6; margin-left:8px;"></span> ร้อน °C
                     </div>
                     <!-- 💎 Hover Tooltip -->
@@ -182,7 +186,7 @@
                     </div>
                     <div class="widget-label">RAM Usage</div>
                     <div class="hero-legend">
-                        <span class="dot" style="background:var(--yellow);"></span> ใช้ไป % 
+                        <span class="dot" style="background:var(--yellow);"></span> ใช้ไป %
                     </div>
                     <!-- 💎 Hover Tooltip -->
                     <div class="hero-tooltip" id="tooltip-ram">ใช้ไป: 0%</div>
@@ -225,7 +229,8 @@
                 </div>
                 <div class="card" style="margin:0; padding:15px; border-left: 3px solid var(--primary);">
                     <div class="hw-title">ความจุ Drive C:</div>
-                    <div class="hw-sub" style="margin-top: 5px; font-size: 16px; font-weight: bold; color: var(--text-main); display:flex; justify-content:space-between; align-items:center;">
+                    <div class="hw-sub"
+                        style="margin-top: 5px; font-size: 16px; font-weight: bold; color: var(--text-main); display:flex; justify-content:space-between; align-items:center;">
                         <span id="val-storage">0.0</span> <span style="font-size:10px; opacity:0.6;">GB Free</span>
                     </div>
                     <div class="hw-bar-bg" style="margin-top:5px;">
@@ -260,16 +265,14 @@
                     onclick="window.showAlertModal({icon: '', title: 'อัลกอริทึมคำนวณค่าไฟ', body: 'เพื่อความแม่นยำสูงสุด อัลกอริทึมระบบอ้างอิงโครงสร้างมาจากเว็บคำนวณระดับโลกอย่าง Outervision Power Supply Calculator แม้ซอฟต์แวร์จะเจาะดู Hardware ทุกชิ้นไม่ได้ แต่เราใช้หลักการทำ Hardware Profiling โดยให้ผู้ใช้กำหนดสเปคอุปกรณ์ภายนอกไว้ล่วงหน้า แล้วนำมารวมกับโหลด CPU/GPU ที่แปรผันแบบ Real-time จากนั้นคูณชดเชยค่า PSU Efficiency Loss 15% วิธีนี้ทำให้เราได้ค่า Wall Power (ไฟที่ดึงจากปลั๊กจริงๆ) ที่แม่นยำที่สุดเท่าที่ Software-only solution จะทำได้ครับ<br><br><b>• ระบบบันทึกข้อมูล:</b> ใช้ค่าเฉลี่ยพลังงานแบบ Exponential Moving Average (EMA) เพื่อหักล้างความผันผวน และบันทึกยอดสะสมขึ้น Cloud <b>ทุกๆ 1 นาที</b> เพื่อป้องกันข้อมูลหล่นหาย', color: 'var(--yellow)'})">info</span>
             </div>
             <div class="hw-grid">
-                <div class="card card-highlight-primary"
-                    style="margin:0; padding:15px;">
+                <div class="card card-highlight-primary" style="margin:0; padding:15px;">
                     <div style="font-size: 12px; color: var(--primary);">ค่าไฟวันนี้</div>
                     <div style="font-size: 28px; font-weight: 700; color: var(--primary);">฿<span
                             id="costTodayVal">0.00</span></div>
                     <div style="font-size: 11px; color: var(--text-sub);">ใช้งาน <span id="timeTodayVal"
                             style="color:var(--text-main); font-weight:bold;">0.0</span> ชม.</div>
                 </div>
-                <div class="card card-highlight-yellow"
-                    style="margin:0; padding:15px;">
+                <div class="card card-highlight-yellow" style="margin:0; padding:15px;">
                     <div style="font-size: 12px; color: var(--yellow);">ค่าไฟสะสมเดือนนี้</div>
                     <div style="font-size: 28px; font-weight: 700; color: var(--yellow);">฿<span
                             id="costMonthVal">0.00</span></div>
@@ -279,7 +282,8 @@
             </div>
 
             <!-- 📊 Daily Summary Lookup -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px;">
                 <div class="section-title" style="margin-bottom: 0;"><span class="material-symbols-rounded"
                         style="font-size: 18px;">calendar_month</span> สรุปการใช้งานรายวัน</div>
             </div>
@@ -290,7 +294,8 @@
                         style="-webkit-appearance:none; appearance:none; background:var(--purple); color:white; border:none; border-radius:10px; padding:8px 14px; font-family:'Prompt'; font-size:13px; font-weight:700; cursor:pointer; flex:1;">
                 </div>
                 <div id="daily-lookup-result">
-                    <div style="text-align:center; font-size:12px; color:var(--text-sub);">เลือกวันที่เพื่อดูสรุปข้อมูล</div>
+                    <div style="text-align:center; font-size:12px; color:var(--text-sub);">เลือกวันที่เพื่อดูสรุปข้อมูล
+                    </div>
                 </div>
             </div>
 
@@ -359,7 +364,8 @@
 
                 <div id="timer-display"
                     style="margin-top: 15px; font-size: 13px; color: var(--blue); font-weight: 600; display: none; background: rgba(52, 152, 219, 0.1); padding: 12px; border-radius: 10px; text-align: center;">
-                    <span class="material-symbols-rounded" style="font-size:16px; vertical-align:-3px;">timer</span> คอมพิวเตอร์จะปิดเครื่องในอีก: <span id="timer-countdown"
+                    <span class="material-symbols-rounded" style="font-size:16px; vertical-align:-3px;">timer</span>
+                    คอมพิวเตอร์จะปิดเครื่องในอีก: <span id="timer-countdown"
                         style="font-size: 24px; margin-left: 8px; font-weight: 700;">00:00</span>
                 </div>
             </div>
@@ -369,7 +375,8 @@
             <!-- 💡 AI Energy Insight — แสดงเมื่อทิ้งคอมไว้โดยไม่ใช้งาน -->
             <div id="insight-banner"
                 style="display:none; background:rgba(241,196,15,0.15); border:1px solid var(--yellow); border-radius:14px; padding:16px; margin-top:20px; align-items:flex-start; gap:12px; animation:fadeIn 0.5s ease;">
-                <div style="font-size:28px; line-height:1;"><span class="material-symbols-rounded" style="font-size:28px; color:var(--yellow);">lightbulb</span></div>
+                <div style="font-size:28px; line-height:1;"><span class="material-symbols-rounded"
+                        style="font-size:28px; color:var(--yellow);">lightbulb</span></div>
                 <div>
                     <div style="font-size:13px; font-weight:700; color:var(--yellow); margin-bottom:4px;">AI Energy
                         Insight</div>
@@ -534,11 +541,14 @@
                 <div style="border-top: 2px solid #353b48; margin-top: 10px; padding-top: 24px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h2 style="margin:0; display:flex; align-items:center; gap:8px;">
-                            <span class="material-symbols-rounded" style="font-size:28px; color:var(--blue);">apps</span> สถิติโปรแกรม
+                            <span class="material-symbols-rounded"
+                                style="font-size:28px; color:var(--blue);">apps</span> สถิติโปรแกรม
                         </h2>
                         <div style="display:flex; gap:8px;">
-                            <button class="month-toggle active" id="toggle-app-daily" onclick="showAppTab('daily')">วันนี้</button>
-                            <button class="month-toggle" id="toggle-app-monthly" onclick="showAppTab('monthly')">เดือนนี้</button>
+                            <button class="month-toggle active" id="toggle-app-daily"
+                                onclick="showAppTab('daily')">วันนี้</button>
+                            <button class="month-toggle" id="toggle-app-monthly"
+                                onclick="showAppTab('monthly')">เดือนนี้</button>
                         </div>
                     </div>
 
@@ -551,22 +561,27 @@
 
                     <!-- Summary cards -->
                     <div class="hw-grid" style="margin-bottom:16px;">
-                        <div class="card" style="margin:0; padding:15px; background:rgba(30, 144, 255, 0.1); border:1px solid var(--blue); text-align:center;">
-                            <div style="font-size:11px; color:var(--text-sub);" id="app-summary-label">เวลาประมวลผลหนัก วันนี้</div>
-                            <div class="game-log-mins" id="app-total-mins" style="font-size: 22px; font-weight: 700;">0.0</div>
+                        <div class="card"
+                            style="margin:0; padding:15px; background:rgba(30, 144, 255, 0.1); border:1px solid var(--blue); text-align:center;">
+                            <div style="font-size:11px; color:var(--text-sub);" id="app-summary-label">เวลาประมวลผลหนัก
+                                วันนี้</div>
+                            <div class="game-log-mins" id="app-total-mins" style="font-size: 22px; font-weight: 700;">
+                                0.0</div>
                             <div style="font-size:11px; color:var(--text-sub);">นาที (โดยรวม)</div>
                         </div>
                     </div>
 
                     <!-- รายการโปรแกรม -->
-                    <div class="section-title"><span class="material-symbols-rounded" style="font-size:16px;">list</span> รายละเอียดแยกรายโปรแกรม (เรียงตามนาทีใช้งาน)</div>
+                    <div class="section-title"><span class="material-symbols-rounded"
+                            style="font-size:16px;">list</span> รายละเอียดแยกรายโปรแกรม (เรียงตามนาทีใช้งาน)</div>
                     <div id="app-list">
                         <div id="gaming-log-empty">กำลังโหลดข้อมูล...</div>
                     </div>
 
                     <!-- Monthly: แยกโปรแกรมในเดือน -->
                     <div id="app-monthly-days" style="display:none;">
-                        <div class="section-title" style="margin-top:20px;"><span class="material-symbols-rounded" style="font-size:16px;">calendar_month</span> สรุปรายเดือน</div>
+                        <div class="section-title" style="margin-top:20px;"><span class="material-symbols-rounded"
+                                style="font-size:16px;">calendar_month</span> สรุปรายเดือน</div>
                         <div id="app-monthly-list"></div>
                     </div>
                 </div>
@@ -586,13 +601,28 @@
                     <div class="year-total-bar" id="year-total-bar" style="display:none;">
                         <h3><span class="material-symbols-rounded" style="font-size:16px;">summarize</span> รวมทั้งปี
                         </h3>
-                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--primary);">schedule</span> ชม.ใช้งานรวม</span><span id="yr-total-hrs">–</span></div>
-                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--yellow);">bolt</span> ค่าไฟรวม</span><span id="yr-total-cost">–</span></div>
-                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--blue);">electric_meter</span> พลังงานรวม</span><span id="yr-total-kwh">–</span></div>
-                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--red);">sports_esports</span> ชม.เล่นเกมรวม</span><span id="yr-total-game">–</span></div>
-                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--primary);">memory</span> CPU เฉลี่ยทั้งปี</span><span id="yr-avg-cpu">–</span></div>
-                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--purple);">memory_alt</span> RAM เฉลี่ยทั้งปี</span><span id="yr-avg-ram">–</span></div>
-                        <div class="year-stat-row"><span><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--red);">local_fire_department</span> 5 แอปยอดฮิตแห่งปี</span><span id="yr-top-apps" style="font-size:10px; text-align:right;">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded"
+                                    style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--primary);">schedule</span>
+                                ชม.ใช้งานรวม</span><span id="yr-total-hrs">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded"
+                                    style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--yellow);">bolt</span>
+                                ค่าไฟรวม</span><span id="yr-total-cost">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded"
+                                    style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--blue);">electric_meter</span>
+                                พลังงานรวม</span><span id="yr-total-kwh">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded"
+                                    style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--red);">sports_esports</span>
+                                ชม.เล่นเกมรวม</span><span id="yr-total-game">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded"
+                                    style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--primary);">memory</span>
+                                CPU เฉลี่ยทั้งปี</span><span id="yr-avg-cpu">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded"
+                                    style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--purple);">memory_alt</span>
+                                RAM เฉลี่ยทั้งปี</span><span id="yr-avg-ram">–</span></div>
+                        <div class="year-stat-row"><span><span class="material-symbols-rounded"
+                                    style="font-size:14px; vertical-align:-2px; margin-right:4px; color:var(--red);">local_fire_department</span>
+                                5 แอปยอดฮิตแห่งปี</span><span id="yr-top-apps"
+                                style="font-size:10px; text-align:right;">–</span></div>
                     </div>
                     <div id="summary-loading">กำลังโหลดข้อมูล...</div>
                     <div id="monthly-summary-list"></div>
@@ -746,7 +776,8 @@
     <!-- Custom Modal (แทน confirm/alert) -->
     <div id="custom-modal-overlay">
         <div class="custom-modal-box" id="custom-modal-box">
-            <div class="custom-modal-icon" id="modal-icon"><span class="material-symbols-rounded" style="font-size:32px;">help</span></div>
+            <div class="custom-modal-icon" id="modal-icon"><span class="material-symbols-rounded"
+                    style="font-size:32px;">help</span></div>
             <div class="custom-modal-title" id="modal-title">ยืนยัน</div>
             <div class="custom-modal-body" id="modal-body"></div>
             <div class="custom-modal-btns" id="modal-btns"></div>
@@ -888,23 +919,28 @@
             <div class="install-sheet-handle"></div>
             <div class="install-sheet-header">
                 <div>
-                    <div style="font-size: 11px; color: var(--yellow); font-weight: 600; letter-spacing: 1px;">MANAGEMENT</div>
+                    <div style="font-size: 11px; color: var(--yellow); font-weight: 600; letter-spacing: 1px;">
+                        MANAGEMENT</div>
                     <div style="font-size: 17px; font-weight: 700;">จัดการรายการ AI Game</div>
                 </div>
                 <button class="install-close-btn" onclick="closeGameManageModal()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            
-            <div style="padding: 14px 20px 6px; font-size:12px; font-weight:700; color:var(--primary); letter-spacing:1px; display:flex; align-items:center; gap:5px;">
-                <span class="material-symbols-rounded" style="font-size:18px;">smart_toy</span> Custom Games (รายการเกมที่บันทึกไว้)
+
+            <div
+                style="padding: 14px 20px 6px; font-size:12px; font-weight:700; color:var(--primary); letter-spacing:1px; display:flex; align-items:center; gap:5px;">
+                <span class="material-symbols-rounded" style="font-size:18px;">smart_toy</span> Custom Games
+                (รายการเกมที่บันทึกไว้)
             </div>
             <div id="custom-games-list" style="padding: 0 20px;">
                 <!-- แทรกจาก JS -->
             </div>
 
-            <div style="padding: 14px 20px 6px; font-size:12px; font-weight:700; color:var(--red); letter-spacing:1px; display:flex; align-items:center; gap:5px; margin-top:10px;">
-                <span class="material-symbols-rounded" style="font-size:18px;">visibility_off</span> Ignored Apps (รายการแอปที่ละเว้น)
+            <div
+                style="padding: 14px 20px 6px; font-size:12px; font-weight:700; color:var(--red); letter-spacing:1px; display:flex; align-items:center; gap:5px; margin-top:10px;">
+                <span class="material-symbols-rounded" style="font-size:18px;">visibility_off</span> Ignored Apps
+                (รายการแอปที่ละเว้น)
             </div>
             <div id="ignored-games-list" style="padding: 0 20px; margin-bottom: 20px;">
                 <!-- แทรกจาก JS -->
