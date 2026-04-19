@@ -519,7 +519,7 @@ auth.onAuthStateChanged((user) => {
                     if(elTime) {
                         const h = Math.floor(d.Daily_Mins / 60);
                         const m = Math.floor(d.Daily_Mins % 60);
-                        elTime.innerText = `${h}.${m.toString().padStart(2, '0')}`;
+                        elTime.innerText = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
                     }
                 }
 
@@ -662,7 +662,8 @@ auth.onAuthStateChanged((user) => {
                 if (!_isGamingNotified) {
                     _isGamingNotified = true;
                     if (window.addNotification && !_isFirstGamingLoad) {
-                        window.addNotification("sports_esports", `เข้าสู่โหมดเกม: ${(g.game || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}`, "ระบบกำลังติดตามการใช้พลังงานแบบเข้มข้น...", "var(--red)");
+                        const cleanGameName = (g.game || '').replace(/\.exe/gi, '').replace(/_exe/gi, '');
+                        window.addNotification("sports_esports", `เข้าสู่โหมดเกม: ${cleanGameName}`, "ระบบกำลังติดตามการใช้พลังงานแบบเข้มข้น...", "var(--red)");
                     }
                 }
                 _lastGameEndKey = '';  
@@ -678,8 +679,9 @@ auth.onAuthStateChanged((user) => {
                         _lastGameEndKey = endKey;
                         // 🌟 แก้ไข: ย้ายจาก showAlertToast (แจ้งเตือนกลางจอ) ไปไว้ที่กระดิ่งแทน
                         if (window.addNotification && !_isFirstGamingLoad) {
+                            const cleanLastGame = (g.last_game || '').replace(/\.exe/gi, '').replace(/_exe/gi, '');
                             window.addNotification(
-                                "flag", `จบเกม: ${(g.last_game || '').replace(/\.exe/gi, '').replace(/_exe/gi, '')}`, 
+                                "flag", `จบเกม: ${cleanLastGame}`, 
                                 `ใช้เวลา ${g.last_mins} นาที — ค่าไฟ ฿${Number(g.last_cost_thb || 0).toFixed(2)}`, 
                                 "var(--yellow)"
                             );
@@ -898,7 +900,7 @@ auth.onAuthStateChanged((user) => {
                 });
             }
             document.getElementById('costMonthVal').innerText = totalCost.toFixed(2);
-            document.getElementById('timeMonthVal').innerText = `${Math.floor(totalMins / 60)}.${Math.floor(totalMins % 60).toString().padStart(2, '0')}`;
+            document.getElementById('timeMonthVal').innerText = Math.floor(totalMins / 60) > 0 ? `${Math.floor(totalMins / 60)} ชม. ${Math.floor(totalMins % 60)} นาที` : `${Math.floor(totalMins % 60)} นาที`;
         });
 
         // =====================================================
@@ -949,7 +951,7 @@ function fetchDailySummary(uid, dateStr) {
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div style="background:rgba(155,89,182,0.12); border:1px solid rgba(155,89,182,0.3); border-radius:14px; padding:14px; text-align:center;">
                     <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px;">เวลาใช้งาน</div>
-                    <div style="font-size:26px; font-weight:700; color:var(--purple);">${hrs}<span style="font-size:14px; opacity:0.7;">ชม.</span> ${remMins}<span style="font-size:14px; opacity:0.7;">นาที</span></div>
+                    <div style="font-size:22px; font-weight:700; color:var(--purple);">${hrs > 0 ? hrs + '<span style="font-size:14px; opacity:0.7;"> ชม.</span> ' : ''}${remMins}<span style="font-size:14px; opacity:0.7;"> นาที</span></div>
                 </div>
                 <div style="background:rgba(241,196,15,0.12); border:1px solid rgba(241,196,15,0.3); border-radius:14px; padding:14px; text-align:center;">
                     <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px;">ค่าไฟที่ใช้</div>
@@ -1241,7 +1243,10 @@ function loadMonthlyAppLog() {
 // =====================================================
 function initYearSelect() {
     const sel = document.getElementById('year-select');
+    const mSel = document.getElementById('month-select');
     const thisYear = new Date().getFullYear();
+    const thisMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+    
     sel.innerHTML = '';
     for (let y = thisYear; y >= thisYear - 3; y--) {
         const opt = document.createElement('option');
@@ -1249,7 +1254,12 @@ function initYearSelect() {
         if (y === thisYear) opt.selected = true;
         sel.appendChild(opt);
     }
+    
+    // ตั้งค่าเดือนเริ่มต้นเป็นเดือนปัจจุบัน
+    if(mSel) mSel.value = thisMonth;
+
     sel.addEventListener('change', () => loadYearlySummary(parseInt(sel.value)));
+    if(mSel) mSel.addEventListener('change', () => loadYearlySummary(parseInt(sel.value)));
 }
 
 function loadYearlySummary(year) {
@@ -1264,16 +1274,28 @@ function loadYearlySummary(year) {
     // ดึง daily_summary และ daily_game_log เพื่อคำนวณค่าไฟ + ชั่วโมงให้ตรง (monthly_summary มีบัคสะสมเพี้ยน)
     const dailyRef = db.ref(`users/${uid}/daily_summary`);
     const gameLogRef = db.ref(`users/${uid}/daily_game_log`);
+    const monitorRef = db.ref(`users/${uid}/PC_Monitor`);
     const monthlyRef = db.ref(`users/${uid}/monthly_summary`)
         .orderByKey()
         .startAt(String(year))
         .endAt(String(year) + "\uf8ff");
 
-    Promise.all([monthlyRef.once('value'), dailyRef.once('value'), gameLogRef.once('value')]).then(([monthSnap, dailySnap, gameSnap]) => {
+    Promise.all([monthlyRef.once('value'), dailyRef.once('value'), gameLogRef.once('value'), monitorRef.once('value')]).then(([monthSnap, dailySnap, gameSnap, monitorSnap]) => {
         document.getElementById('summary-loading').style.display = 'none';
         const allMonths = monthSnap.val();
-        const allDays = dailySnap.val() || {};
+        const allDays = (dailySnap.val() || {});
         const allGameLogs = gameSnap.val() || {};
+        const monitorData = monitorSnap.val() || {};
+
+        // 🌟 ซิงค์ข้อมูลวันนี้ให้ตรงกับ Real-time (PC_Monitor)
+        const todayStr = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD"
+        if (monitorData.Daily_Cost_THB !== undefined) {
+            allDays[todayStr] = {
+                ...allDays[todayStr],
+                cost_thb: monitorData.Daily_Cost_THB,
+                session_mins: monitorData.Daily_Mins || 0
+            };
+        }
 
         // รวมรายวันตามเดือน ให้ได้ตัวเลขที่ตรงจริงๆ
         const dailyByMonth = {};
@@ -1314,7 +1336,10 @@ function loadYearlySummary(year) {
             return;
         }
 
-        let yrHrs = 0, yrCost = 0, yrKwh = 0, yrGame = 0, yrCpuSum = 0, yrRamSum = 0;
+        const mFilter = document.getElementById('month-select')?.value || 'all';
+
+        let yrHrsSum = 0, yrMinsSum = 0, yrCost = 0, yrKwh = 0, yrGameHrs = 0, yrGameMins = 0, yrCpuSum = 0, yrRamSum = 0;
+        let yrAllApps = {};
         let html = '';
         months.forEach(monthKey => {
             const m = (allMonths || {})[monthKey] || {};
@@ -1322,66 +1347,106 @@ function loadYearlySummary(year) {
 
             // ใช้ cost + hours + game_hrs จาก aggregation (ตรงกว่า monthly_summary)
             const monthCost = daily.cost || Number(m.total_cost_thb || 0);
-            const monthMins = daily.mins || Number(m.total_session_mins || 0);
-            const monthHrs = Math.round(monthMins / 60 * 10) / 10;
-            const monthGameHrs = Math.round((daily.game_mins || (Number(m.game_hrs || 0) * 60)) / 60 * 10) / 10;
+            const monthMinsTotal = daily.mins || (Number(m.total_session_mins || 0));
+            
+            const monthHrs = Math.floor(monthMinsTotal / 60);
+            const monthMins = Math.floor(monthMinsTotal % 60);
+            const monthTimeStr = monthHrs > 0 ? `${monthHrs} ชม. ${monthMins} นาที` : `${monthMins} นาที`;
 
-            yrHrs += monthHrs;
+            const monthGameMinsTotal = daily.game_mins || (Number(m.game_hrs || 0) * 60);
+            const monthGameHrs = Math.floor(monthGameMinsTotal / 60);
+            const monthGameMins = Math.floor(monthGameMinsTotal % 60);
+            const monthGameTimeStr = monthGameHrs > 0 ? `${monthGameHrs} ชม. ${monthGameMins} นาที` : `${monthGameMins} นาที`;
+
+            yrHrsSum += Math.floor(monthMinsTotal / 60);
+            yrMinsSum += Math.floor(monthMinsTotal % 60);
             yrCost += monthCost;
             yrKwh += Number(m.total_kwh || 0);
-            yrGame += monthGameHrs;
+            yrGameHrs += monthGameHrs;
+            yrGameMins += monthGameMins;
             yrCpuSum += Number(m.avg_cpu || 0);
             yrRamSum += Number(m.avg_ram || 0);
+            
+            // 🌟 รวมแอปยอดนิยมประจำปี
+            if (m.top_apps_count) {
+                Object.entries(m.top_apps_count).forEach(([name, count]) => {
+                    // Normalize name
+                    const clean = name.replace(/\.exe/gi, '').replace(/_exe/gi, '');
+                    yrAllApps[clean] = (yrAllApps[clean] || 0) + count;
+                });
+            }
 
             const topApps = Object.entries(m.top_apps_count || {})
                 .sort((a, b) => b[1] - a[1]).slice(0, 5)
                 .map(([name]) => `<span class="ym-app-chip">${name.replace(/\.exe/gi, '').replace(/_exe/gi, '')}</span>`).join('');
 
-            const monthName = new Date(monthKey + '-01').toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
-            html += `<div class="year-month-card">
-                <div class="ym-header">
-                    <div class="ym-month"><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">calendar_month</span> ${monthName}</div>
-                    <div class="ym-cost">฿${monthCost.toFixed(2)}</div>
-                </div>
-                <div class="ym-stats-grid">
-                    <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--primary);">${monthHrs}<small style="font-size:11px;"> ชม.</small></div>
-                        <div class="ym-stat-label">ใช้งาน</div>
+            const isMatch = (mFilter === 'all' || monthKey.endsWith('-' + mFilter));
+            if (isMatch) {
+                const monthName = new Date(monthKey + '-01').toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+                html += `<div class="year-month-card">
+                    <div class="ym-header">
+                        <div class="ym-month"><span class="material-symbols-rounded" style="font-size:14px; vertical-align:-2px; margin-right:4px;">calendar_month</span> ${monthName}</div>
+                        <div class="ym-cost">฿${monthCost.toFixed(2)}</div>
                     </div>
-                    <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--red);">${monthGameHrs}<small style="font-size:11px;"> ชม.</small></div>
-                        <div class="ym-stat-label">เล่นเกม</div>
+                    <div class="ym-stats-grid">
+                        <div class="ym-stat">
+                            <div class="ym-stat-val" style="color:var(--primary);">${monthTimeStr}</div>
+                            <div class="ym-stat-label">ใช้งาน</div>
+                        </div>
+                        <div class="ym-stat">
+                            <div class="ym-stat-val" style="color:var(--red);">${monthGameTimeStr}</div>
+                            <div class="ym-stat-label">เล่นเกม</div>
+                        </div>
+                        <div class="ym-stat">
+                            <div class="ym-stat-val" style="color:var(--yellow);">${Number(m.total_kwh || 0).toFixed(2)}<small style="font-size:11px;"> kWh</small></div>
+                            <div class="ym-stat-label">พลังงาน</div>
+                        </div>
+                        <div class="ym-stat">
+                            <div class="ym-stat-val" style="color:var(--blue);">${m.avg_cpu || 0}<small style="font-size:11px;">%</small></div>
+                            <div class="ym-stat-label">avg CPU</div>
+                        </div>
+                        <div class="ym-stat">
+                            <div class="ym-stat-val" style="color:var(--yellow);">${m.avg_ram || 0}<small style="font-size:11px;">%</small></div>
+                            <div class="ym-stat-label">avg RAM</div>
+                        </div>
+                        <div class="ym-stat">
+                            <div class="ym-stat-val" style="color:var(--purple);">${m.avg_watt || 0}<small style="font-size:11px;">W</small></div>
+                            <div class="ym-stat-label">avg Watt</div>
+                        </div>
                     </div>
-                    <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--yellow);">${Number(m.total_kwh || 0).toFixed(2)}<small style="font-size:11px;"> kWh</small></div>
-                        <div class="ym-stat-label">พลังงาน</div>
-                    </div>
-                    <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--blue);">${m.avg_cpu || 0}<small style="font-size:11px;">%</small></div>
-                        <div class="ym-stat-label">avg CPU</div>
-                    </div>
-                    <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--yellow);">${m.avg_ram || 0}<small style="font-size:11px;">%</small></div>
-                        <div class="ym-stat-label">avg RAM</div>
-                    </div>
-                    <div class="ym-stat">
-                        <div class="ym-stat-val" style="color:var(--purple);">${m.avg_watt || 0}<small style="font-size:11px;">W</small></div>
-                        <div class="ym-stat-label">avg Watt</div>
-                    </div>
-                </div>
-                ${topApps ? `<div class="ym-apps">${topApps}</div>` : ''}
-            </div>`;
+                    ${topApps ? `<div class="ym-apps">${topApps}</div>` : ''}
+                </div>`;
+            }
         });
+
+        if (html === '' && mFilter !== 'all') {
+            html = `<div style="text-align:center;padding:30px;color:var(--text-sub);font-size:13px;">ไม่มีข้อมูลของเดือนที่เลือก</div>`;
+        }
 
         document.getElementById('monthly-summary-list').innerHTML = html;
 
         const n = months.length;
-        document.getElementById('yr-total-hrs').innerText = yrHrs.toFixed(1) + ' ชม.';
+        // จัดการนาทีรวมให้เป็น ชั่วโมง นาที
+        const totalYrHrs = yrHrsSum + Math.floor(yrMinsSum / 60);
+        const totalYrMins = yrMinsSum % 60;
+        document.getElementById('yr-total-hrs').innerText = totalYrHrs > 0 ? `${totalYrHrs} ชม. ${totalYrMins} นาที` : `${totalYrMins} นาที`;
+        
+        const totalYrGameHrs = yrGameHrs + Math.floor(yrGameMins / 60);
+        const totalYrGameMins = yrGameMins % 60;
+        document.getElementById('yr-total-game').innerText = totalYrGameHrs > 0 ? `${totalYrGameHrs} ชม. ${totalYrGameMins} นาที` : `${totalYrGameMins} นาที`;
+
         document.getElementById('yr-total-cost').innerText = '฿' + yrCost.toFixed(2);
         document.getElementById('yr-total-kwh').innerText = yrKwh.toFixed(2) + ' kWh';
-        document.getElementById('yr-total-game').innerText = yrGame.toFixed(1) + ' ชม.';
         document.getElementById('yr-avg-cpu').innerText = (yrCpuSum / n).toFixed(1) + '%';
         document.getElementById('yr-avg-ram').innerText = (yrRamSum / n).toFixed(1) + '%';
+        
+        // 🌟 แสดง Top 5 Apps ทั้งปี
+        const sortedYrApps = Object.entries(yrAllApps)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+        let yrTopAppsHtml = sortedYrApps.map(([name]) => `<span class="ym-app-chip">${name}</span>`).join('');
+        document.getElementById('yr-top-apps').innerHTML = yrTopAppsHtml || '–';
+
         document.getElementById('year-total-bar').style.display = 'block';
     }).catch(() => {
         document.getElementById('summary-loading').style.display = 'none';
@@ -1552,33 +1617,39 @@ function showBellPopup(icon, title, body, color) {
     const popup = document.createElement('div');
     popup.style.cssText = `
                 position: fixed; top: 60px; right: 12px; z-index: 9999;
-                background: ${color || 'var(--bg-card)'}; border: var(--card-border);
+                background: var(--bg-card); border: var(--card-border);
                 border-radius: 12px; padding: 12px 16px; min-width: 220px; max-width: calc(100vw - 24px);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.4);
                 display: flex; gap: 12px; align-items: flex-start;
                 animation: slideToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                color: #fff;
+                color: var(--text-main);
+                backdrop-filter: blur(20px);
             `;
-    // ถ้าเป็นสี var(--bg-card) ให้เป็นสีพื้นฐาน ถ้าเป็น var(--red) ให้เปลี่ยนสีพื้นเพื่อเตือน
+    
+    // ถ้ามีสีเฉพาะ (เช่น var(--red)) ให้เน้นขอบซ้าย
     if (color && color.includes('var(')) {
-        popup.style.background = 'var(--bg-card)';
         popup.style.borderLeft = `4px solid ${color}`;
     }
 
+    // 🏆 BUG FIX: กรอง .exe ออกจาก Body ด้วยถ้ามี
+    const cleanBody = (body || '').replace(/\.exe/gi, '').replace(/_exe/gi, '');
+
     popup.innerHTML = `
-                <div style="flex-shrink: 0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.08); border-radius:10px;"><span class="material-symbols-rounded" style="font-size:20px;">${icon}</span></div>
+                <div style="flex-shrink: 0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:rgba(128,128,128,0.1); border-radius:10px;"><span class="material-symbols-rounded" style="font-size:20px; color:${color || 'var(--primary)'}">${icon}</span></div>
                 <div>
                     <div style="font-size: 13px; font-weight: 700; color: ${color || 'var(--text-main)'};">${title}</div>
-                    <div style="font-size: 11px; color: var(--text-sub); margin-top: 2px;">${body}</div>
+                    <div style="font-size: 11px; color: var(--text-sub); margin-top: 2px;">${cleanBody}</div>
                 </div>
             `;
     document.body.appendChild(popup);
 
     setTimeout(() => {
-        popup.style.animation = 'slideToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) reverse';
+        // 🏆 BUG FIX: ใช้ transition แทนป้อน animation reverse ที่ browser ไม่เล่นซ้ำ
+        popup.style.transition = 'all 0.4s ease-in';
         popup.style.opacity = '0';
+        popup.style.transform = 'translateY(-20px) scale(0.9)';
         setTimeout(() => popup.remove(), 400);
-    }, 5000); // ให้อยู่ 5 วินาที
+    }, 5000); 
 }
 
 // 🎮 Suspect Notification — แจ้งเตือนที่กระดิ่งพร้อมปุ่ม action
