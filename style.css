@@ -855,18 +855,20 @@
 
         /* ================= Feature 2: Gaming Mode ================= */
         .gaming-banner {
-            background: rgba(231, 76, 60, 0.1) !important;
-            border: 2px solid rgba(231, 76, 60, 0.5) !important;
+            background: var(--bg-card) !important;
+            border: var(--card-border) !important;
+            border-left: 5px solid var(--red) !important;
             border-radius: 20px;
             padding: 20px 24px;
             margin-bottom: 25px;
             display: none;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 30px rgba(231, 76, 60, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             animation: pulseRed 2.5s ease-in-out infinite;
+            color: var(--text-main);
         }
 
         .gaming-banner::before {
